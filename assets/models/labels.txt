@@ -1,0 +1,6 @@
+0 Eastern Oyster (Crassostrea virginica)-Shell
+1 Eastern Oyster (Crassostrea virginica)-Meat
+2 Pacific Oyster (Crassostrea gigas)-Shell
+3 Pacific Oyster (Crassostrea gigas)-Meat
+4 Mangrove Oyster (Crassostrea iredalei)-Shell
+5 Mangrove Oyster (Crassostrea iredalei)-Meat
