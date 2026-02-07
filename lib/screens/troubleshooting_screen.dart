@@ -14,8 +14,8 @@ class TroubleshootingScreen extends StatefulWidget {
 class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
   late List<TroubleshootingGuide> guides;
   String? _selectedSeverity;
-  Map<String, VideoPlayerController?> _videoControllers = {};
-  Map<String, bool> _isSpeakingMap = {};
+  final Map<String, VideoPlayerController?> _videoControllers = {};
+  final Map<String, bool> _isSpeakingMap = {};
   late TextToSpeechService _ttsService;
 
   @override
@@ -139,6 +139,7 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
       });
       await _ttsService.speak(text);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Hindi makasalita: $e')),
       );

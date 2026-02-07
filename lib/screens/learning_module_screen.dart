@@ -69,6 +69,7 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
       });
       await _ttsService.speak(text);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Hindi makasalita: $e')),
       );

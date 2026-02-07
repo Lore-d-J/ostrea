@@ -81,26 +81,7 @@ class SpeciesIdentificationService {
   }
 
   /// Get top N predictions
-  List<Map<String, dynamic>> _getTopPredictions(
-    List<double> predictions,
-    int topN,
-  ) {
-    final indexed = <Map<String, dynamic>>[];
-    for (int i = 0; i < predictions.length; i++) {
-      indexed.add({
-        'label': speciesLabels[i],
-        'confidence': (predictions[i] * 100).toStringAsFixed(2),
-      });
-    }
-
-    indexed.sort((a, b) {
-      final confA = double.parse(a['confidence']);
-      final confB = double.parse(b['confidence']);
-      return confB.compareTo(confA);
-    });
-
-    return indexed.take(topN).toList();
-  }
+  // Web implementation returns mock results; helper removed to avoid unused warnings.
 
   /// Dispose resources
   void dispose() {

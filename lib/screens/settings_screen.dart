@@ -40,7 +40,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final title = isTl ? AppStrings.titleSettings : AppStringsEn.titleSettings;
     final appSettings = isTl ? AppStrings.appSettings : AppStringsEn.appSettings;
     final language = isTl ? AppStrings.language : AppStringsEn.language;
-    final selectLanguage = isTl ? AppStrings.selectLanguage : AppStringsEn.selectLanguage;
     final currentLanguage = isTl ? AppStrings.currentLanguage : AppStringsEn.currentLanguage;
 
     return Scaffold(

@@ -46,6 +46,8 @@ class SpeciesIdentificationService {
 
       // Resize to model input size (assuming 224x224)
       final resizedImage = img.copyResize(image, width: 224, height: 224);
+      // Convert resized image to byte list for potential TFLite input (ignored for now)
+      final _ = _imageToByteList(resizedImage, 224);
 
       // Run inference - use variable predictions based on image hash
       final predictions = _generateVariablePredictions(imageBytes);
