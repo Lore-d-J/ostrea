@@ -43,10 +43,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final currentLanguage = isTl ? AppStrings.currentLanguage : AppStringsEn.currentLanguage;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-        elevation: 0,
-      ),
+      appBar: AppBar(elevation: 0),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

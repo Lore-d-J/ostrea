@@ -122,9 +122,7 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(AppStrings.titleLearningModules),
-      ),
+      appBar: AppBar(),
       body: ListView.builder(
         padding: EdgeInsets.all(12),
         itemCount: modules.length,

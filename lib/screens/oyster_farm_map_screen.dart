@@ -52,9 +52,7 @@ class _OysterFarmMapScreenState extends State<OysterFarmMapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Oyster Farm Map'),
-      ),
+      appBar: AppBar(),
       body: SizedBox.expand(
         child: FlutterMap(
           mapController: _mapController,

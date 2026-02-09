@@ -73,10 +73,7 @@ class _SpeciesIdentificationScreenState extends State<SpeciesIdentificationScree
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(AppStrings.titleSpeciesID),
-        elevation: 0,
-      ),
+      appBar: AppBar(elevation: 0),
       body: SingleChildScrollView(
         child: Column(
           children: [

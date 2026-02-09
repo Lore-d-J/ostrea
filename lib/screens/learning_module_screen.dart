@@ -96,7 +96,6 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.module.title),
         actions: [
           IconButton(
             icon: Icon(_isBookmarked ? Icons.bookmark : Icons.bookmark_border),

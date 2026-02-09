@@ -165,9 +165,7 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(AppStrings.titleTroubleshooting),
-      ),
+      appBar: AppBar(),
       body: Column(
         children: [
           // Filter buttons

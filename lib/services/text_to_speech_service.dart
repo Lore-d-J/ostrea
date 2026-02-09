@@ -31,7 +31,8 @@ class TextToSpeechService {
         'language': language,
       });
     } catch (e) {
-      // Handle error silently
+      print('TTS Error: $e');
+      rethrow;
     }
   }
 
