@@ -37,10 +37,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final isTl = _selectedLanguage == 'tl';
-    final title = isTl ? AppStrings.titleSettings : AppStringsEn.titleSettings;
     final appSettings = isTl ? AppStrings.appSettings : AppStringsEn.appSettings;
     final language = isTl ? AppStrings.language : AppStringsEn.language;
-    final currentLanguage = isTl ? AppStrings.currentLanguage : AppStringsEn.currentLanguage;
 
     return Scaffold(
       appBar: AppBar(elevation: 0),
@@ -75,14 +73,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               fontSize: 16,
                             ),
                           ),
-                          SizedBox(height: 12),
-                          Text(
-                            currentLanguage,
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 12,
-                            ),
-                          ),
                           SizedBox(height: 16),
                           // Language Options
                           Column(
@@ -105,34 +95,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                   SizedBox(height: 24),
-                  // Info Box
-                  Container(
-                    padding: EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[50],
-                      border: Border.all(color: Colors.blue[300]!),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          isTl ? 'Impormasyon' : 'Information',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue[900],
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          isTl
-                              ? 'Ang pagbabago ng wika ay aayon sa buong aplikasyon at sa text-to-speech feature.'
-                              : 'Changing the language will apply to the entire app and the text-to-speech feature.',
-                          style: TextStyle(color: Colors.blue[900]),
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
             ),

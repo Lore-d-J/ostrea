@@ -16,7 +16,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   late List<Widget> _screens;
-  late List<String> _titles;
 
   @override
   void initState() {
@@ -31,14 +30,6 @@ class _HomeScreenState extends State<HomeScreen> {
       TroubleshootingScreen(),
       SpeciesIdentificationScreen(),
       SettingsScreen(onLanguageChanged: _refreshScreens),
-    ];
-
-    _titles = [
-      'Oyster Farm Map',
-      AppStringsHelper.titleLearningModules,
-      AppStringsHelper.titleTroubleshooting,
-      AppStringsHelper.titleSpeciesID,
-      AppStringsHelper.titleSettings,
     ];
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:ostrea/models/learning_module.dart';
 import 'package:ostrea/services/text_to_speech_service.dart';
+import 'package:ostrea/services/local_data_service.dart';
 import 'package:ostrea/localization/app_strings.dart';
 
 class TroubleshootingScreen extends StatefulWidget {
@@ -21,98 +22,15 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
   @override
   void initState() {
     super.initState();
-    guides = _getTroubleshootingGuides();
+    _loadGuides();
     _ttsService = TextToSpeechService();
   }
 
-  List<TroubleshootingGuide> _getTroubleshootingGuides() {
-    return [
-      TroubleshootingGuide(
-        id: 'disease1',
-        title: 'Sakit ng Shell',
-        problem: 'Oysters na may white spots o lesions sa shell',
-        cause: 'Bacterial infection, mabuting water quality, o shell damage',
-        solutions: [
-          'Pahusayin ang water circulation at aeration',
-          'Alisin ang affected oysters upang maiwasan ang kumalat',
-          'Panatilihing pH 7.5-8.5',
-          'Siguraduhin ang sapat na calcium para sa shell repair',
-          'Subaybayan ang water temperature - ideally 15-25°C',
-        ],
-        severity: 'high',
-      ),
-      TroubleshootingGuide(
-        id: 'algae1',
-        title: 'Sobrang Algae Growth',
-        problem: 'Green o brown algae blooms sa farming area',
-        cause: 'Nutrient-rich water, mainit na temperatura, stagnant water',
-        solutions: [
-          'Taasan ang water exchange rate',
-          'Bawasan ang nutrient input from feed',
-          'Gumamit ng algae-eating species kung available',
-          'Ani ng excess algae mechanically',
-          'Subaybayan ang ammonia at nitrate levels',
-        ],
-        severity: 'medium',
-      ),
-      TroubleshootingGuide(
-        id: 'mortality1',
-        title: 'Mataas na Oyster Mortality',
-        problem: 'Significant oyster death rate (>10% per month)',
-        cause: 'Mabuting water quality, temperature extremes, sakit, o inadequate food',
-        solutions: [
-          'Suriin ang water quality parameters araw-araw',
-          'I-adjust ang stocking density',
-          'Siguraduhin ang sapat na phytoplankton food',
-          'Tingnan ang parasites o diseases',
-          'Panatilihing consistent ang temperature',
-          'Pahusayin ang water filtration',
-        ],
-        severity: 'high',
-      ),
-      TroubleshootingGuide(
-        id: 'growth1',
-        title: 'Mabagal na Growth Rate',
-        problem: 'Oysters na hindi lumalaki sa expected rate',
-        cause: 'Inadequate food availability, mabuting water quality, temperature stress',
-        solutions: [
-          'Taasan ang water flow rate',
-          'Magdagdag ng natural food sources (diatoms, flagellates)',
-          'Gumamit ng supplemental feeds kung available',
-          'Bawasan ang stocking density para sa better feeding',
-          'Subaybayan ang temperature stability',
-        ],
-        severity: 'medium',
-      ),
-      TroubleshootingGuide(
-        id: 'parasite1',
-        title: 'Parasitic Infection',
-        problem: 'Oysters na nagpapakita ng weakness, gaping, o poor meat quality',
-        cause: 'Perkinsus, Bonamia, o other parasitic protozoa',
-        solutions: [
-          'I-implement ang quarantine para sa new stock',
-          'Subaybayan ang spat at seed oysters para sa parasites',
-          'Panatilihing optimal ang water conditions',
-          'Alisin agad ang infected oysters',
-          'I-disinfect ang tools at equipment between operations',
-        ],
-        severity: 'high',
-      ),
-      TroubleshootingGuide(
-        id: 'spat1',
-        title: 'Mabiting Spat Settlement',
-        problem: 'Mababang settlement rate ng oyster larvae',
-        cause: 'Inadequate settlement cues, mabuting substrate, wrong temperature',
-        solutions: [
-          'Gumamit ng conditioned shells bilang settlement substrate',
-          'Panatilihing temperature 18-20°C during settlement',
-          'Siguraduhin ang adequate bacterial biofilm sa substrate',
-          'Panatilihing madilim ang settlement area initially',
-          'Gumamit ng pheromone attractants kung available',
-        ],
-        severity: 'high',
-      ),
-    ];
+  void _loadGuides() async {
+    final guides = await LocalDataService().getTroubleshootingGuides();
+    setState(() {
+      this.guides = guides;
+    });
   }
 
   List<TroubleshootingGuide> get _filteredGuides {
