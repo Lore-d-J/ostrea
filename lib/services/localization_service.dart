@@ -14,14 +14,20 @@ class LocalizationService {
   Future<void> initialize() async {
     final prefs = await SharedPreferences.getInstance();
     _currentLanguage = prefs.getString(_languageKey) ?? 'tl';
+    // Ensure the stored language is Tagalog only
+    if (_currentLanguage != 'tl') {
+      _currentLanguage = 'tl';
+      await prefs.setString(_languageKey, 'tl');
+    }
   }
 
   String get currentLanguage => _currentLanguage;
 
   Future<void> setLanguage(String languageCode) async {
-    _currentLanguage = languageCode;
+    // App supports only Tagalog now; ignore requested language and keep 'tl'.
+    _currentLanguage = 'tl';
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_languageKey, languageCode);
+    await prefs.setString(_languageKey, 'tl');
   }
 
   String getLanguageName(String code) {

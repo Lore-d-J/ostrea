@@ -73,9 +73,9 @@ class AppStrings {
   static const String currentLanguage = 'Kasalukuyang Wika';
   static const String selectLanguage = 'Pumili ng Wika';
   static const String appSettings = 'Mga Setting ng Aplikasyon';
-  static const String textToSpeech = 'Text-to-Speech';
-  static const String speechRate = 'Speech Rate';
-  static const String voicePitch = 'Voice Pitch';
+  static const String textToSpeech = 'Teksto-sa-Pagsasalita';
+  static const String speechRate = 'Bilis ng Pagsasalita';
+  static const String voicePitch = 'Tono ng Boses';
 
   // Common
   static const String loading = 'Nag-load';
@@ -83,7 +83,7 @@ class AppStrings {
   static const String success = 'Matagumpay';
   static const String cancel = 'Kanselahin';
   static const String save = 'I-save';
-  static const String delete = 'Tanggapin';
+  static const String delete = 'Tanggalin';
   static const String edit = 'I-edit';
   static const String yes = 'Oo';
   static const String no = 'Hindi';

@@ -53,7 +53,9 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        title: Text('Mga Módulo sa Pagkatuto'),
+      ),
       body: ListView.builder(
         padding: EdgeInsets.all(12),
         itemCount: modules.length,
@@ -118,7 +120,7 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '${module.contentSections.length} sections',
+                          '${module.contentSections.length} seksyon',
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey[600],

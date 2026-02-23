@@ -240,7 +240,7 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Pangunahing Takeaway',
+                              'Pangunahing Punto',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.green[700],
@@ -248,7 +248,7 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
                             ),
                             SizedBox(height: 8),
                             Text(
-                              'Tandaan ang pangunahing konsepto mula sa seksyong ito para sa mas mahusay na pagsasanay sa oyster.',
+                              'Tandaan ang pangunahing punto mula sa seksyong ito para sa mas mahusay na pagsasanay sa oyster.',
                               style: TextStyle(
                                 color: Colors.green[600],
                               ),

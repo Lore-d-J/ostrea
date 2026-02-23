@@ -1,11 +1,11 @@
 import 'package:flutter/services.dart';
-import 'package:ostrea/services/localization_service.dart';
+// localization_service no longer required here; app language is fixed to Tagalog
 
 class TextToSpeechService {
   static final TextToSpeechService _instance = TextToSpeechService._internal();
   static const platform = MethodChannel('com.ostrea.app/tts');
   bool _isInitialized = false;
-  late LocalizationService _localizationService;
+  // No longer store localization service; app language is Tagalog-only
 
   factory TextToSpeechService() {
     return _instance;
@@ -15,7 +15,6 @@ class TextToSpeechService {
 
   Future<void> initialize() async {
     if (_isInitialized) return;
-    _localizationService = LocalizationService();
     _isInitialized = true;
   }
 
@@ -24,11 +23,10 @@ class TextToSpeechService {
       if (!_isInitialized) {
         await initialize();
       }
-      // Use native Android TTS through method channel
-      final language = _localizationService.currentLanguage == 'en' ? 'en' : 'fil';
+      // Use native Android TTS through method channel — always Tagalog (fil)
       await platform.invokeMethod('speak', {
         'text': text,
-        'language': language,
+        'language': 'fil',
       });
     } catch (e) {
       print('TTS Error: $e');
@@ -54,9 +52,8 @@ class TextToSpeechService {
 
   Future<void> setLanguage(String languageCode) async {
     try {
-      await platform.invokeMethod('setLanguage', {
-        'language': languageCode == 'en' ? 'en' : 'fil',
-      });
+      // App only supports Tagalog; ensure native TTS uses Tagalog
+      await platform.invokeMethod('setLanguage', {'language': 'fil'});
     } catch (e) {
       // Handle error silently
     }
