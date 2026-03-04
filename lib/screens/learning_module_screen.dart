@@ -19,7 +19,6 @@ class LearningModuleScreen extends StatefulWidget {
 
 class _LearningModuleScreenState extends State<LearningModuleScreen> {
   int _currentSection = 0;
-  bool _isBookmarked = false;
   bool _isSpeaking = false;
   late PageController _pageController;
   late TextToSpeechService _ttsService;
@@ -30,7 +29,6 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
     super.initState();
     _pageController = PageController();
     _ttsService = TextToSpeechService();
-    _checkBookmarkStatus();
     _initializeVideo();
   }
 
@@ -43,23 +41,7 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
     }
   }
 
-  void _checkBookmarkStatus() async {
-    final isBookmarked = await LocalStorageService.isBookmarked(widget.module.id);
-    setState(() {
-      _isBookmarked = isBookmarked;
-    });
-  }
-
-  void _toggleBookmark() async {
-    if (_isBookmarked) {
-      await LocalStorageService.removeBookmark(widget.module.id);
-    } else {
-      await LocalStorageService.addBookmark(widget.module.id);
-    }
-    setState(() {
-      _isBookmarked = !_isBookmarked;
-    });
-  }
+  // Bookmark feature removed per request
 
   void _speakContent(String text) async {
     try {
@@ -96,12 +78,18 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        actions: [
-          IconButton(
-            icon: Icon(_isBookmarked ? Icons.bookmark : Icons.bookmark_border),
-            onPressed: _toggleBookmark,
-          ),
-        ],
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            // stop TTS and pause video when leaving the module
+            _stopSpeaking();
+            _videoController?.pause();
+            Navigator.pop(context);
+          },
+        ),
+        title: Text(widget.module.title),
       ),
       body: Column(
         children: [
@@ -305,6 +293,9 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    // ensure audio/video are stopped when leaving
+    _stopSpeaking();
+    _videoController?.pause();
     _videoController?.dispose();
     _ttsService.dispose();
     super.dispose();

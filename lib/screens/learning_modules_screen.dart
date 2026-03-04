@@ -14,7 +14,7 @@ class LearningModulesScreen extends StatefulWidget {
 class _LearningModulesScreenState extends State<LearningModulesScreen> {
   late List<LearningModule> modules;
   List<String> _completedModules = [];
-  List<String> _bookmarks = [];
+  // bookmarks removed
 
   @override
   void initState() {
@@ -32,10 +32,8 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
 
   void _loadProgress() async {
     final completed = await LocalStorageService.getCompletedModules();
-    final bookmarks = await LocalStorageService.getBookmarks();
     setState(() {
       _completedModules = completed;
-      _bookmarks = bookmarks;
     });
   }
 
@@ -54,6 +52,12 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
+        leading: Padding(
+          padding: EdgeInsets.all(8),
+          child: Image.asset('assets/images/ostreaLogo.png'),
+        ),
         title: Text('Mga Módulo sa Pagkatuto'),
       ),
       body: ListView.builder(
@@ -62,7 +66,6 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
         itemBuilder: (context, index) {
           final module = modules[index];
           final isCompleted = _completedModules.contains(module.id);
-          final isBookmarked = _bookmarks.contains(module.id);
 
           return Card(
             margin: EdgeInsets.only(bottom: 12),
@@ -126,25 +129,7 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
                             color: Colors.grey[600],
                           ),
                         ),
-                        IconButton(
-                          icon: Icon(
-                            isBookmarked
-                                ? Icons.bookmark
-                                : Icons.bookmark_border,
-                            color: Colors.orange,
-                          ),
-                          onPressed: () {
-                            if (isBookmarked) {
-                              LocalStorageService.removeBookmark(module.id);
-                            } else {
-                              LocalStorageService.addBookmark(module.id);
-                            }
-                            _loadProgress();
-                          },
-                          constraints:
-                              BoxConstraints(minWidth: 32, minHeight: 32),
-                          padding: EdgeInsets.zero,
-                        ),
+                        SizedBox.shrink(),
                       ],
                     ),
                   ],

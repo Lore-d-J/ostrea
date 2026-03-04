@@ -29,7 +29,6 @@ class TextToSpeechService {
         'language': 'fil',
       });
     } catch (e) {
-      print('TTS Error: $e');
       rethrow;
     }
   }

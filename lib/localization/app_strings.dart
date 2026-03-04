@@ -2,44 +2,44 @@
 class AppStrings {
   // Navigation
   static const String navHome = 'Tahanan';
-  static const String navLearn = 'Matuto';
-  static const String navTroubleshoot = 'Paglutas ng Problema';
-  static const String navIdentify = 'Kilalanin';
-  static const String navSettings = 'Mga Setting';
+  static const String navLearn = 'Aral';
+  static const String navTroubleshoot = 'Tulong';
+  static const String navIdentify = 'Tingnan';
+  static const String navSettings = 'Ayos';
 
   // App Bar Titles
-  static const String titleOysterFarming = 'Pagpapalaki ng Oyster';
-  static const String titleLearningModules = 'Mga Módulo sa Pagkatuto';
-  static const String titleTroubleshooting = 'Paglutas ng Problema';
-  static const String titleSpeciesID = 'Pagkilala sa Spesye';
-  static const String titleSettings = 'Mga Setting';
+  static const String titleOysterFarming = 'Pag-alaga ng Oyster';
+  static const String titleLearningModules = 'Mga Aralin';
+  static const String titleTroubleshooting = 'Tulong at Solusyon';
+  static const String titleSpeciesID = 'Image Processing';
+  static const String titleSettings = 'Ayos';
 
   // Home Screen
   static const String homeTitle = 'OSTREA';
-  static const String homeSubtitle = 'Ang Iyong Kasosyo sa Pagpapalaki ng Oyster';
+  static const String homeSubtitle = 'Ang Iyong Kasama sa Pag-alaga ng Oyster';
   static const String homeWelcome = 'Maligayang Pagdating sa OSTREA';
-  static const String homeDescription = 'Ang komprehensibong gabay sa oyster farming';
+  static const String homeDescription = 'Gabay sa Pag-alaga ng Oyster';
   
   // Quick Links
-  static const String quickLinksTitle = 'Mabilis na Mga Link';
+  static const String quickLinksTitle = 'Mabilis na Link';
   static const String learnMore = 'Matuto Pa';
-  static const String identifySpecies = 'Kilalanin ang Spesye';
-  static const String troubleshootIssues = 'Solusyunan ang mga Isyu';
+  static const String identifySpecies = 'Tingnan ang Uri';
+  static const String troubleshootIssues = 'Hanapin ang Solusyon';
 
   // Species Identification Screen
-  static const String speciesTitle = 'Pagkilala sa Spesye ng Oyster';
-  static const String speciesInstructions = 'Kumuha ng malinaw na larawan ng shell o laman ng oyster upang matukoy ang spesye.';
-  static const String goodLighting = 'Mabuting liwanag at malinaw na pokus para sa mas mataas na katumpakan';
+  static const String speciesTitle = 'Larawan at Pagsusuri';
+  static const String speciesInstructions = 'Kumuha ng malinaw na larawan para sa pagsusuri.';
+  static const String goodLighting = 'Mabuting liwanag at malinaw na larawan';
   static const String takePhoto = 'Kumuha ng Larawan';
-  static const String uploadFromGallery = 'Mag-upload mula sa Galerya';
-  static const String identifyResult = 'Resulta ng Pagkilala';
-  static const String species = 'Spesye';
-  static const String confidence = 'Kumpiyansa';
-  static const String allPredictions = 'Lahat ng Pagtataya';
+  static const String uploadFromGallery = 'Kunin mula sa Galerya';
+  static const String identifyResult = 'Resulta';
+  static const String species = 'Kategorya';
+  static const String confidence = 'Porsyento';
+  static const String allPredictions = 'Iba pang Posibilidad';
   static const String tryAgain = 'Subukan Muli';
-  static const String noImageSelected = 'Walang larawan ang napili';
-  static const String identificationFailed = 'Nabigo ang pagkilala';
-  static const String failedToPickImage = 'Nabigo ang pagkuha ng larawan';
+  static const String noImageSelected = 'Walang larawan';
+  static const String identificationFailed = 'Hindi magana ang pagsusuri';
+  static const String failedToPickImage = 'Hindi makuha ang larawan';
 
   // Species Names
   static const String easternOysterShell = 'Eastern Oyster (Crassostrea virginica) - Shell';
@@ -50,41 +50,41 @@ class AppStrings {
   static const String mangroveOysterMeat = 'Mangrove Oyster (Crassostrea iredalei) - Laman';
 
   // Learning Screen
-  static const String learningModulesTitle = 'Mga Módulo sa Pagkatuto';
-  static const String noModulesAvailable = 'Walang mga módulo na available';
-  static const String completed = 'Tapos na';
-  static const String inProgress = 'Nasa Daan';
-  static const String startLesson = 'Simulan ang Leksyon';
-  static const String continueLesson = 'Magpatuloy sa Leksyon';
+  static const String learningModulesTitle = 'Mga Aralin';
+  static const String noModulesAvailable = 'Walang aralin';
+  static const String completed = 'Tapos';
+  static const String inProgress = 'Ginagawa';
+  static const String startLesson = 'Magsimula';
+  static const String continueLesson = 'Magpatuloy';
 
   // Troubleshooting Screen
-  static const String troubleshootingTitle = 'Mga Gabay sa Paglutas ng Problema';
-  static const String noGuidesAvailable = 'Walang mga gabay na available';
+  static const String troubleshootingTitle = 'Tulong at Solusyon';
+  static const String noGuidesAvailable = 'Walang tulong';
   static const String problem = 'Problema';
-  static const String cause = 'Sanhi';
-  static const String solutions = 'Mga Solusyon';
-  static const String severity = 'Antas ng Kalubhaan';
-  static const String low = 'Mababa';
-  static const String medium = 'Katamtaman';
-  static const String high = 'Mataas';
+  static const String cause = 'Dahilan';
+  static const String solutions = 'Solusyon';
+  static const String severity = 'Seryoso';
+  static const String low = 'Kaunti';
+  static const String medium = 'Karapat-dapat';
+  static const String high = 'Napakaseryoso';
 
   // Settings Screen
   static const String language = 'Wika';
-  static const String currentLanguage = 'Kasalukuyang Wika';
+  static const String currentLanguage = 'Wika Ngayon';
   static const String selectLanguage = 'Pumili ng Wika';
-  static const String appSettings = 'Mga Setting ng Aplikasyon';
-  static const String textToSpeech = 'Teksto-sa-Pagsasalita';
-  static const String speechRate = 'Bilis ng Pagsasalita';
-  static const String voicePitch = 'Tono ng Boses';
+  static const String appSettings = 'Ayos ng App';
+  static const String textToSpeech = 'Boses';
+  static const String speechRate = 'Bilis ng Boses';
+  static const String voicePitch = 'Tunog ng Boses';
 
   // Common
-  static const String loading = 'Nag-load';
-  static const String error = 'Kalagayan';
-  static const String success = 'Matagumpay';
-  static const String cancel = 'Kanselahin';
-  static const String save = 'I-save';
+  static const String loading = 'Hinihintay...';
+  static const String error = 'Problema';
+  static const String success = 'OK';
+  static const String cancel = 'Bawiin';
+  static const String save = 'Sabihin';
   static const String delete = 'Tanggalin';
-  static const String edit = 'I-edit';
+  static const String edit = 'Baguhin';
   static const String yes = 'Oo';
   static const String no = 'Hindi';
   static const String close = 'Isara';
@@ -94,14 +94,14 @@ class AppStrings {
   static const String ok = 'OK';
   
   // Error Messages
-  static const String errorOccurred = 'Nakaganap ang isang kalagayan';
-  static const String tryAgainLater = 'Mangyaring subukan muli sa ibang pagkakataon';
-  static const String internetRequired = 'Kailangan ng internet connection';
-  static const String permissionDenied = 'Hindi pinapayagan ang pahintulot';
+  static const String errorOccurred = 'May problema';
+  static const String tryAgainLater = 'Subukan muli';
+  static const String internetRequired = 'Kailangan ng internet';
+  static const String permissionDenied = 'Hindi pinapayagan';
 
   // Other
-  static const String keyInformation = 'Mahalagang Impormasyon';
-  static const String optimalConditions = 'Optimal na Kondisyon';
-  static const String farmingCycle = 'Siklo ng Pagpapalaki';
-  static const String diseasePrevention = 'Pagpapahintulot ng Sakit';
+  static const String keyInformation = 'Importante';
+  static const String optimalConditions = 'Tamang Kondisyon';
+  static const String farmingCycle = 'Proseso ng Alaga';
+  static const String diseasePrevention = 'Ligtas sa Sakit';
 }

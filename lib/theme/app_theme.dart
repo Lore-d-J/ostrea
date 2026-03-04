@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Ocean-inspired color palette
-  static const Color primaryColor = Color(0xFF004E89); // Deep ocean blue
-  static const Color secondaryColor = Color(0xFF0077B6); // Ocean blue
-  static const Color tertiaryColor = Color(0xFF00B4D8); // Bright sea blue
+  // Cerulean blue theme palette
+  // primaryColor is classic cerulean (#007BA7)
+  static const Color primaryColor = Color(0xFF007BA7);
+  // complementary shades for UI accents
+  static const Color secondaryColor = Color(0xFF0099CC);
+  static const Color tertiaryColor = Color(0xFF33B5E5);
   static const Color accentColor = Color(0xFFFF6B6B); // Sea coral
   static const Color backgroundColor = Color(0xFFF0F8FF); // Alice blue (light ocean)
   static const Color surfaceColor = Color(0xFFFFFFFF); // White
@@ -67,7 +69,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
         ),
         color: surfaceColor,
-        shadowColor: primaryColor.withOpacity(0.2),
+        shadowColor: primaryColor.withValues(alpha: 0.2),
       ),
       chipTheme: ChipThemeData(
         backgroundColor: oceanFoam,

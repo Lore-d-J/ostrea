@@ -14,6 +14,7 @@ class TroubleshootingScreen extends StatefulWidget {
 
 class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
   late List<TroubleshootingGuide> guides;
+  bool _isLoading = true;
   String? _selectedSeverity;
   final Map<String, VideoPlayerController?> _videoControllers = {};
   final Map<String, bool> _isSpeakingMap = {};
@@ -27,25 +28,45 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
   }
 
   void _loadGuides() async {
-    final guides = await LocalDataService().getTroubleshootingGuides();
-    setState(() {
-      this.guides = guides;
-    });
+    try {
+      final guides = await LocalDataService().getTroubleshootingGuides();
+      setState(() {
+        this.guides = guides;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if(!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading guides: $e')),
+      );
+    }
   }
 
   List<TroubleshootingGuide> get _filteredGuides {
-    if (_selectedSeverity == null) return guides;
+    if (_selectedSeverity == null || _isLoading) return [];
     return guides.where((g) => g.severity == _selectedSeverity).toList();
   }
 
   Color _getSeverityColor(String severity) {
     switch (severity) {
       case 'high':
-        return Colors.red;
+        return Colors.red[600]!;
       case 'medium':
-        return Colors.orange;
+        return Colors.orange[600]!;
       default:
-        return Colors.blue;
+        return Colors.blue[600]!;
+    }
+  }
+
+  String _getSeverityLabel(String severity) {
+    switch (severity) {
+      case 'high':
+        return 'Mataas';
+      case 'medium':
+        return 'Katamtaman';
+      default:
+        return 'Mababa';
     }
   }
 
@@ -56,8 +77,12 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
         _isSpeakingMap[id] = true;
       });
       await _ttsService.speak(text);
+      if(mounted) {
+        setState(() => _isSpeakingMap[id] = false);
+      }
     } catch (e) {
       if (!mounted) return;
+      setState(() => _isSpeakingMap[id] = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Hindi makasalita: $e')),
       );
@@ -75,7 +100,7 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
     if (!_videoControllers.containsKey(guideId) && videoAsset.isNotEmpty) {
       _videoControllers[guideId] = VideoPlayerController.asset(videoAsset)
         ..initialize().then((_) {
-          setState(() {});
+          if(mounted) setState(() {});
         });
     }
   }
@@ -83,197 +108,245 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
-      body: Column(
-        children: [
-          // Filter buttons
-          Padding(
-            padding: EdgeInsets.all(12),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  FilterChip(
-                    label: Text('Lahat ng Isyu'),
-                    selected: _selectedSeverity == null,
-                    onSelected: (selected) {
-                      setState(() {
-                        _selectedSeverity = null;
-                      });
-                    },
-                  ),
-                  SizedBox(width: 8),
-                  FilterChip(
-                    label: Text('Mataas na Prioridad'),
-                    selected: _selectedSeverity == 'high',
-                    onSelected: (selected) {
-                      setState(() {
-                        _selectedSeverity = selected ? 'high' : null;
-                      });
-                    },
-                  ),
-                  SizedBox(width: 8),
-                  FilterChip(
-                    label: Text('Katamtamang Prioridad'),
-                    selected: _selectedSeverity == 'medium',
-                    onSelected: (selected) {
-                      setState(() {
-                        _selectedSeverity = selected ? 'medium' : null;
-                      });
-                    },
-                  ),
-                ],
-              ),
-            ),
+      appBar: AppBar(
+        elevation: 2,
+        // use theme's primary color instead of hardcoded green
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        leading: Padding(
+          padding: EdgeInsets.all(8),
+          child: Image.asset('assets/images/ostreaLogo.png'),
+        ),
+        title: Text(
+          'Troubleshooting Guide',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
           ),
-          // List of guides
-          Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              itemCount: _filteredGuides.length,
-              itemBuilder: (context, index) {
-                final guide = _filteredGuides[index];
-                return Card(
-                  margin: EdgeInsets.only(bottom: 12),
-                  child: ExpansionTile(
-                    title: Row(
+        ),
+        foregroundColor: Colors.white,
+      ),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                // Filter section
+                Container(
+                  color: Colors.grey[50],
+                  padding: EdgeInsets.all(12),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
                       children: [
-                        Container(
-                          width: 4,
-                          height: 40,
-                          color: _getSeverityColor(guide.severity),
+                        FilterChip(
+                          label: Text('Lahat ng Isyu'),
+                          selected: _selectedSeverity == null,
+                          selectedColor: Colors.green[200],
+                          onSelected: (selected) {
+                            setState(() => _selectedSeverity = null);
+                          },
                         ),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                guide.title,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                guide.problem,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
+                        SizedBox(width: 8),
+                        FilterChip(
+                          label: Text('Mataas na Prioridad'),
+                          selected: _selectedSeverity == 'high',
+                          selectedColor: Colors.red[200],
+                          onSelected: (selected) {
+                            setState(() => _selectedSeverity = selected ? 'high' : null);
+                          },
+                        ),
+                        SizedBox(width: 8),
+                        FilterChip(
+                          label: Text('Katamtamang Prioridad'),
+                          selected: _selectedSeverity == 'medium',
+                          selectedColor: Colors.orange[200],
+                          onSelected: (selected) {
+                            setState(() => _selectedSeverity = selected ? 'medium' : null);
+                          },
                         ),
                       ],
                     ),
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Video if available
-                            if (guide.videoAsset != null && guide.videoAsset!.isNotEmpty)
-                              Padding(
-                                padding: EdgeInsets.only(bottom: 16),
-                                child: _buildVideoSection(guide),
+                  ),
+                ),
+                // Guides list
+                Expanded(
+                  child: _selectedSeverity != null && _filteredGuides.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.search_off, size: 64, color: Colors.grey),
+                              SizedBox(height: 16),
+                              Text(
+                                'Walang nakitang gabay',
+                                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                               ),
-                            // Problem section
-                            Text(
-                              'Problema',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          itemCount: _selectedSeverity == null ? guides.length : _filteredGuides.length,
+                          itemBuilder: (context, index) {
+                            final guide = _selectedSeverity == null ? guides[index] : _filteredGuides[index];
+                            return Card(
+                              margin: EdgeInsets.only(bottom: 12),
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              guide.problem,
-                              style: TextStyle(color: Colors.grey[700]),
-                            ),
-                            SizedBox(height: 12),
-                            // TTS Button for problem and cause
-                            ElevatedButton.icon(
-                              onPressed: (_isSpeakingMap[guide.id] ?? false)
-                                  ? () => _stopSpeaking(guide.id)
-                                  : () => _speakText(
-                                      '${guide.problem}. ${guide.cause}',
-                                      guide.id),
-                              icon: Icon((_isSpeakingMap[guide.id] ?? false)
-                                  ? Icons.stop
-                                  : Icons.volume_up),
-                              label: Text((_isSpeakingMap[guide.id] ?? false)
-                                  ? 'Tumitigil'
-                                  : 'Marinig'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green[600],
-                                foregroundColor: Colors.white,
-                              ),
-                            ),
-                            SizedBox(height: 12),
-                            // Cause section
-                            Text(
-                              AppStrings.cause,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              guide.cause,
-                              style: TextStyle(color: Colors.grey[700]),
-                            ),
-                            SizedBox(height: 16),
-                            // Solutions section
-                            Text(
-                              AppStrings.solutions,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: guide.solutions
-                                  .map((solution) => Padding(
-                                        padding: EdgeInsets.symmetric(
-                                          vertical: 4,
+                              child: ExpansionTile(
+                                title: Row(
+                                  children: [
+                                    Container(
+                                      width: 5,
+                                      height: 50,
+                                      decoration: BoxDecoration(
+                                        color: _getSeverityColor(guide.severity),
+                                        borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(12),
+                                          bottomLeft: Radius.circular(12),
                                         ),
-                                        child: Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              '• ',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            guide.title,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
                                             ),
-                                            Expanded(
-                                              child: Text(solution),
+                                          ),
+                                          SizedBox(height: 4),
+                                          Text(
+                                            guide.problem,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey[600],
                                             ),
-                                          ],
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Chip(
+                                      label: Text(
+                                        _getSeverityLabel(guide.severity),
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                      ))
-                                  .toList(),
-                            ),
-                          ],
+                                      ),
+                                      backgroundColor: _getSeverityColor(guide.severity),
+                                    ),
+                                  ],
+                                ),
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsets.all(16),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        if (guide.videoAsset != null && guide.videoAsset!.isNotEmpty)
+                                          Padding(
+                                            padding: EdgeInsets.only(bottom: 16),
+                                            child: _buildVideoSection(guide),
+                                          ),
+                                        Text(
+                                          'Problema',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        SizedBox(height: 4),
+                                        Text(
+                                          guide.problem,
+                                          style: TextStyle(color: Colors.grey[700]),
+                                        ),
+                                        SizedBox(height: 12),
+                                        ElevatedButton.icon(
+                                          onPressed: (_isSpeakingMap[guide.id] ?? false)
+                                              ? () => _stopSpeaking(guide.id)
+                                              : () => _speakText(
+                                                  '${guide.problem}. ${guide.cause}',
+                                                  guide.id),
+                                          icon: Icon((_isSpeakingMap[guide.id] ?? false)
+                                              ? Icons.stop
+                                              : Icons.volume_up),
+                                          label: Text((_isSpeakingMap[guide.id] ?? false)
+                                              ? 'Tumitigil'
+                                              : 'Marinig'),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.green[600],
+                                            foregroundColor: Colors.white,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(height: 12),
+                                        Text(
+                                          AppStrings.cause,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        SizedBox(height: 4),
+                                        Text(
+                                          guide.cause,
+                                          style: TextStyle(color: Colors.grey[700]),
+                                        ),
+                                        SizedBox(height: 16),
+                                        Text(
+                                          AppStrings.solutions,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        SizedBox(height: 8),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: guide.solutions
+                                              .map((solution) => Padding(
+                                                    padding: EdgeInsets.symmetric(vertical: 4),
+                                                    child: Row(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(
+                                                          '• ',
+                                                          style: TextStyle(
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 16,
+                                                          ),
+                                                        ),
+                                                        Expanded(
+                                                          child: Text(solution),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ))
+                                              .toList(),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
                         ),
                       ),
-                    ],
-                  ),
-                );
-              },
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -302,6 +375,13 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         color: Colors.black,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),

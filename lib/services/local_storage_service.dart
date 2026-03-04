@@ -3,7 +3,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 class LocalStorageService {
   static const String _progressPrefix = 'progress_';
   static const String _completedModulesKey = 'completed_modules';
-  static const String _bookmarksKey = 'bookmarks';
 
   /// Save module progress
   static Future<void> saveModuleProgress(String moduleId, int progress) async {
@@ -34,34 +33,7 @@ class LocalStorageService {
   }
 
   /// Add bookmark
-  static Future<void> addBookmark(String contentId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final bookmarks = prefs.getStringList(_bookmarksKey) ?? [];
-    if (!bookmarks.contains(contentId)) {
-      bookmarks.add(contentId);
-      await prefs.setStringList(_bookmarksKey, bookmarks);
-    }
-  }
-
-  /// Remove bookmark
-  static Future<void> removeBookmark(String contentId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final bookmarks = prefs.getStringList(_bookmarksKey) ?? [];
-    bookmarks.remove(contentId);
-    await prefs.setStringList(_bookmarksKey, bookmarks);
-  }
-
-  /// Get all bookmarks
-  static Future<List<String>> getBookmarks() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getStringList(_bookmarksKey) ?? [];
-  }
-
-  /// Check if content is bookmarked
-  static Future<bool> isBookmarked(String contentId) async {
-    final bookmarks = await getBookmarks();
-    return bookmarks.contains(contentId);
-  }
+  // Bookmark feature removed
 
   /// Clear all data (useful for testing)
   static Future<void> clearAll() async {

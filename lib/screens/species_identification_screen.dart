@@ -73,7 +73,16 @@ class _SpeciesIdentificationScreenState extends State<SpeciesIdentificationScree
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(elevation: 0),
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
+        leading: Padding(
+          padding: EdgeInsets.all(8),
+          child: Image.asset('assets/images/ostreaLogo.png'),
+        ),
+        title: Text(AppStrings.titleSpeciesID),
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
