@@ -57,3 +57,17 @@ class SpeciesInfo {
     required this.characteristics,
   });
 }
+
+class DictionaryEntry {
+  final String term;
+  final String definition;
+  final String category; // e.g., 'biology', 'farming', 'environment'
+  final List<String> relatedTerms;
+
+  DictionaryEntry({
+    required this.term,
+    required this.definition,
+    required this.category,
+    this.relatedTerms = const [],
+  });
+}

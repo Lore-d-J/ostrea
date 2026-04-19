@@ -24,10 +24,7 @@ class TextToSpeechService {
         await initialize();
       }
       // Use native Android TTS through method channel — always Tagalog (fil)
-      await platform.invokeMethod('speak', {
-        'text': text,
-        'language': 'fil',
-      });
+      await platform.invokeMethod('speak', {'text': text, 'language': 'fil'});
     } catch (e) {
       rethrow;
     }
@@ -51,8 +48,7 @@ class TextToSpeechService {
 
   Future<void> setLanguage(String languageCode) async {
     try {
-      // App only supports Tagalog; ensure native TTS uses Tagalog
-      await platform.invokeMethod('setLanguage', {'language': 'fil'});
+      await platform.invokeMethod('setLanguage', {'language': languageCode});
     } catch (e) {
       // Handle error silently
     }

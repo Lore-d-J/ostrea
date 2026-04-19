@@ -19,7 +19,7 @@ class MainActivity : FlutterActivity() {
                 when (call.method) {
                     "speak" -> {
                         val text = call.argument<String>("text")
-                        val language = call.argument<String>("language") ?: "en"
+                        val language = call.argument<String>("language") ?: "fil"
                         if (text != null) {
                             speak(text, language)
                         }
@@ -34,7 +34,7 @@ class MainActivity : FlutterActivity() {
                         result.success(null)
                     }
                     "setLanguage" -> {
-                        val language = call.argument<String>("language") ?: "en"
+                        val language = call.argument<String>("language") ?: "fil"
                         setLanguage(language)
                         result.success(null)
                     }
@@ -50,7 +50,8 @@ class MainActivity : FlutterActivity() {
             tts = TextToSpeech(this) { status ->
                 if (status == TextToSpeech.SUCCESS) {
                     isTtsReady = true
-                    setLanguage("en")
+                    setLanguage("fil")  // Default to Tagalog
+                    selectBestVoice()  // Automatically select the best available voice
                 }
             }
         }
@@ -68,9 +69,43 @@ class MainActivity : FlutterActivity() {
             val locale = when (language) {
                 "fil" -> Locale("fil", "PH")
                 "en" -> Locale.ENGLISH
-                else -> Locale.ENGLISH
+                "en-US" -> Locale("en", "US")
+                "en-GB" -> Locale("en", "GB")
+                else -> Locale(language)
             }
             tts?.language = locale
+        }
+    }
+
+    private fun selectBestVoice() {
+        if (tts != null && isTtsReady) {
+            val voices = tts?.voices ?: emptySet()
+            var bestVoice: android.speech.tts.Voice? = null
+
+            // Prioritize voices with "neural", "wavenet", or high quality
+            for (voice in voices) {
+                if (voice.name.contains("neural", ignoreCase = true) ||
+                    voice.name.contains("wavenet", ignoreCase = true) ||
+                    voice.quality == android.speech.tts.Voice.QUALITY_VERY_HIGH) {
+                    // Prefer Tagalog voices, but accept English if better quality
+                    if (voice.locale.language == "fil" || voice.locale.language == "tl") {
+                        bestVoice = voice
+                        break  // Found a good Tagalog voice
+                    } else if (bestVoice == null || voice.quality > bestVoice.quality) {
+                        bestVoice = voice
+                    }
+                }
+            }
+
+            // If no high-quality voice found, pick the first available
+            if (bestVoice == null && voices.isNotEmpty()) {
+                bestVoice = voices.first()
+            }
+
+            // Set the selected voice
+            if (bestVoice != null) {
+                tts?.voice = bestVoice
+            }
         }
     }
 

@@ -11,7 +11,7 @@ class AppStrings {
   static const String titleOysterFarming = 'Pag-alaga ng Oyster';
   static const String titleLearningModules = 'Mga Aralin';
   static const String titleTroubleshooting = 'Tulong at Solusyon';
-  static const String titleSpeciesID = 'Image Processing';
+  static const String titleSpeciesID = 'Pagsusuri ng Sakit';
   static const String titleSettings = 'Ayos';
 
   // Home Screen
@@ -23,17 +23,17 @@ class AppStrings {
   // Quick Links
   static const String quickLinksTitle = 'Mabilis na Link';
   static const String learnMore = 'Matuto Pa';
-  static const String identifySpecies = 'Tingnan ang Uri';
+  static const String identifySpecies = 'Tingnan ang Sakit';
   static const String troubleshootIssues = 'Hanapin ang Solusyon';
 
-  // Species Identification Screen
-  static const String speciesTitle = 'Larawan at Pagsusuri';
-  static const String speciesInstructions = 'Kumuha ng malinaw na larawan para sa pagsusuri.';
+  // Disease Identification Screen
+  static const String speciesTitle = 'Larawan at Pagsusuri ng Sakit';
+  static const String speciesInstructions = 'Kumuha ng malinaw na larawan ng oyster para sa pagsusuri ng sakit.';
   static const String goodLighting = 'Mabuting liwanag at malinaw na larawan';
   static const String takePhoto = 'Kumuha ng Larawan';
   static const String uploadFromGallery = 'Kunin mula sa Galerya';
   static const String identifyResult = 'Resulta';
-  static const String species = 'Kategorya';
+  static const String species = 'Sakit/Kategorya';
   static const String confidence = 'Porsyento';
   static const String allPredictions = 'Iba pang Posibilidad';
   static const String tryAgain = 'Subukan Muli';
@@ -41,13 +41,13 @@ class AppStrings {
   static const String identificationFailed = 'Hindi magana ang pagsusuri';
   static const String failedToPickImage = 'Hindi makuha ang larawan';
 
-  // Species Names
-  static const String easternOysterShell = 'Eastern Oyster (Crassostrea virginica) - Shell';
-  static const String easternOysterMeat = 'Eastern Oyster (Crassostrea virginica) - Laman';
-  static const String pacificOysterShell = 'Pacific Oyster (Crassostrea gigas) - Shell';
-  static const String pacificOysterMeat = 'Pacific Oyster (Crassostrea gigas) - Laman';
-  static const String mangroveOysterShell = 'Mangrove Oyster (Crassostrea iredalei) - Shell';
-  static const String mangroveOysterMeat = 'Mangrove Oyster (Crassostrea iredalei) - Laman';
+  // Disease Names
+  static const String healthyOyster = 'Malusog na Oyster';
+  static const String diseasedPerkinsus = 'May Sakit na Oyster (Perkinsus)';
+  static const String diseasedBonamia = 'May Sakit na Oyster (Bonamia)';
+  static const String diseasedMSX = 'May Sakit na Oyster (MSX)';
+  static const String barnacles = 'Barnacles';
+  static const String unknown = 'Hindi Kilala';
 
   // Learning Screen
   static const String learningModulesTitle = 'Mga Aralin';

@@ -4,6 +4,7 @@ import 'package:ostrea/models/learning_module.dart';
 import 'package:ostrea/services/text_to_speech_service.dart';
 import 'package:ostrea/services/local_data_service.dart';
 import 'package:ostrea/localization/app_strings.dart';
+import 'package:ostrea/screens/dictionary_screen.dart';
 
 class TroubleshootingScreen extends StatefulWidget {
   const TroubleshootingScreen({super.key});
@@ -101,6 +102,9 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
       _videoControllers[guideId] = VideoPlayerController.asset(videoAsset)
         ..initialize().then((_) {
           if(mounted) setState(() {});
+        })
+        ..addListener(() {
+          if(mounted) setState(() {});
         });
     }
   }
@@ -125,6 +129,18 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
           ),
         ),
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.book),
+            tooltip: 'Diksyonaryo',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const DictionaryScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
@@ -350,6 +366,13 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
     );
   }
 
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return '$minutes:$seconds';
+  }
+
   Widget _buildVideoSection(TroubleshootingGuide guide) {
     if (guide.videoAsset == null || guide.videoAsset!.isEmpty) {
       return SizedBox.shrink();
@@ -371,7 +394,7 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
 
     return Container(
       width: double.infinity,
-      height: 250,
+      height: 280, // Increased for controls
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         color: Colors.black,
@@ -385,27 +408,97 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: Stack(
+        child: Column(
           children: [
-            VideoPlayer(controller),
-            Positioned.fill(
-              child: Center(
-                child: FloatingActionButton(
-                  backgroundColor: Colors.white70,
-                  onPressed: () {
-                    setState(() {
-                      if (controller.value.isPlaying) {
-                        controller.pause();
-                      } else {
-                        controller.play();
-                      }
-                    });
-                  },
-                  child: Icon(
-                    controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
-                    color: Colors.green[700],
+            // Video player
+            Expanded(
+              child: Stack(
+                children: [
+                  VideoPlayer(controller),
+                  // Play/pause overlay
+                  Positioned.fill(
+                    child: Center(
+                      child: FloatingActionButton(
+                        backgroundColor: Colors.white70,
+                        onPressed: () {
+                          setState(() {
+                            if (controller.value.isPlaying) {
+                              controller.pause();
+                            } else {
+                              controller.play();
+                            }
+                          });
+                        },
+                        child: Icon(
+                          controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                          color: Colors.green[700],
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                ],
+              ),
+            ),
+            // Control bar
+            Container(
+              height: 50,
+              color: Colors.black87,
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  // Play/Pause button
+                  IconButton(
+                    icon: Icon(
+                      controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        if (controller.value.isPlaying) {
+                          controller.pause();
+                        } else {
+                          controller.play();
+                        }
+                      });
+                    },
+                  ),
+                  // Skip backward
+                  IconButton(
+                    icon: Icon(Icons.replay_10, color: Colors.white),
+                    onPressed: () {
+                      final current = controller.value.position;
+                      final newPosition = current - Duration(seconds: 10);
+                      controller.seekTo(newPosition > Duration.zero ? newPosition : Duration.zero);
+                    },
+                  ),
+                  // Progress bar
+                  Expanded(
+                    child: Slider(
+                      value: controller.value.position.inSeconds.toDouble(),
+                      max: controller.value.duration.inSeconds.toDouble(),
+                      onChanged: (value) {
+                        controller.seekTo(Duration(seconds: value.toInt()));
+                      },
+                      activeColor: Colors.green,
+                      inactiveColor: Colors.white30,
+                    ),
+                  ),
+                  // Skip forward
+                  IconButton(
+                    icon: Icon(Icons.forward_10, color: Colors.white),
+                    onPressed: () {
+                      final current = controller.value.position;
+                      final duration = controller.value.duration;
+                      final newPosition = current + Duration(seconds: 10);
+                      controller.seekTo(newPosition < duration ? newPosition : duration);
+                    },
+                  ),
+                  // Time display
+                  Text(
+                    '${_formatDuration(controller.value.position)} / ${_formatDuration(controller.value.duration)}',
+                    style: TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                ],
               ),
             ),
           ],
