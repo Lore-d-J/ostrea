@@ -80,9 +80,11 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
-        leading: Padding(
-          padding: EdgeInsets.all(8),
-          child: Image.asset('assets/images/ostreaLogo.png'),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
         ),
         title: Text('Diksyonaryo'),
         elevation: 2,
