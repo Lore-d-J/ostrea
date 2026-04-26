@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ostrea/theme/app_theme.dart';
-import 'package:ostrea/screens/home_screen.dart';
+import 'package:ostrea/screens/splash_screen.dart';
 import 'package:ostrea/localization/app_strings.dart';
 
 void main() {
@@ -15,7 +15,7 @@ class OstreaApp extends StatelessWidget {
     return MaterialApp(
       title: 'OSTREA - ${AppStrings.homeSubtitle}',
       theme: AppTheme.getTheme(),
-      home: const HomeScreen(),
+      home: const SplashScreen(),
       debugShowCheckedModeBanner: false,
     );
   }

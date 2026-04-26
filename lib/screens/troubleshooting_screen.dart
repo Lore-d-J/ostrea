@@ -121,7 +121,7 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
           child: Image.asset('assets/images/ostreaLogo.png'),
         ),
         title: Text(
-          'Troubleshooting Guide',
+          'Gabay sa Problema',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 20,

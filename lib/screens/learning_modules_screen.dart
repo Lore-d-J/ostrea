@@ -61,7 +61,7 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
           padding: EdgeInsets.all(8),
           child: Image.asset('assets/images/ostreaLogo.png'),
         ),
-        title: Text('Mga Módulo sa Pagkatuto'),
+        title: Text('Mga Modulo'),
         actions: [
           IconButton(
             icon: Icon(Icons.book),
