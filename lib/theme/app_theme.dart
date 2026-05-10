@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Cerulean blue theme palette
-  // primaryColor is classic cerulean (#007BA7)
-  static const Color primaryColor = Color(0xFF007BA7);
-  // complementary shades for UI accents
-  static const Color secondaryColor = Color(0xFF0099CC);
-  static const Color tertiaryColor = Color(0xFF33B5E5);
+  // Aquatic theme palette inspired by ocean depths
+  static const Color primaryColor = Color(0xFF006D77); // Ocean deep
+  static const Color secondaryColor = Color(0xFF83C5BE); // Ocean light
+  static const Color tertiaryColor = Color(0xFF004D40); // Dark teal
   static const Color accentColor = Color(0xFFFF6B6B); // Sea coral
-  static const Color backgroundColor = Color(0xFFF0F8FF); // Alice blue (light ocean)
+  static const Color backgroundColor = Color(0xFFF0F4F8); // Light ocean background
   static const Color surfaceColor = Color(0xFFFFFFFF); // White
   static const Color errorColor = Color(0xFFD32F2F); // Red
   static const Color warningColor = Color(0xFFF57F17); // Orange
@@ -64,12 +62,12 @@ class AppTheme {
         ),
       ),
       cardTheme: CardThemeData(
-        elevation: 2,
+        elevation: 0, // Use custom shadows instead
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(24),
         ),
         color: surfaceColor,
-        shadowColor: primaryColor.withValues(alpha: 0.2),
+        shadowColor: primaryColor.withValues(alpha: 0.1),
       ),
       chipTheme: ChipThemeData(
         backgroundColor: oceanFoam,
@@ -119,7 +117,9 @@ class AppTheme {
       scaffoldBackgroundColor: backgroundColor,
       progressIndicatorTheme: ProgressIndicatorThemeData(
         circularTrackColor: oceanFoam,
-        color: tertiaryColor,
+        color: primaryColor,
+        linearTrackColor: primaryColor.withValues(alpha: 0.1),
+        linearMinHeight: 12,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,

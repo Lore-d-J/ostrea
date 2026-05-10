@@ -1,7 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:ostrea/models/learning_module.dart';
-import 'package:ostrea/services/text_to_speech_service.dart';
+import 'package:ostrea/services/audio_playback_service.dart';
 import 'package:ostrea/services/local_data_service.dart';
 import 'package:ostrea/localization/app_strings.dart';
 import 'package:ostrea/screens/dictionary_screen.dart';
@@ -15,489 +17,357 @@ class TroubleshootingScreen extends StatefulWidget {
 
 class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
   late List<TroubleshootingGuide> guides;
+  List<TroubleshootingGuide> _filteredGuidesList = [];
   bool _isLoading = true;
   String? _selectedSeverity;
+  String _searchQuery = "";
+  
   final Map<String, VideoPlayerController?> _videoControllers = {};
   final Map<String, bool> _isSpeakingMap = {};
-  late TextToSpeechService _ttsService;
+  late AudioPlaybackService _audioService;
+  late StreamSubscription<bool> _audioPlaybackSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadGuides();
-    _ttsService = TextToSpeechService();
+    _audioService = AudioPlaybackService();
+    _audioPlaybackSubscription = _audioService.playingStream.listen((isPlaying) {
+      if (!mounted) return;
+      if (!isPlaying) {
+        setState(() {
+          _isSpeakingMap.updateAll((key, value) => false);
+        });
+      }
+    });
   }
 
   void _loadGuides() async {
     try {
-      final guides = await LocalDataService().getTroubleshootingGuides();
+      final loadedGuides = await LocalDataService().getTroubleshootingGuides();
+      if (!mounted) return;
       setState(() {
-        this.guides = guides;
+        guides = loadedGuides;
+        _filteredGuidesList = loadedGuides;
         _isLoading = false;
       });
     } catch (e) {
-      if(!mounted) return;
+      if (!mounted) return;
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading guides: $e')),
-      );
     }
   }
 
-  List<TroubleshootingGuide> get _filteredGuides {
-    if (_selectedSeverity == null || _isLoading) return [];
-    return guides.where((g) => g.severity == _selectedSeverity).toList();
+  void _applyFilters() {
+    setState(() {
+      _filteredGuidesList = guides.where((guide) {
+        final matchesSeverity = _selectedSeverity == null || guide.severity == _selectedSeverity;
+        final matchesSearch = guide.title.toLowerCase().contains(_searchQuery.toLowerCase()) || 
+                             guide.problem.toLowerCase().contains(_searchQuery.toLowerCase());
+        return matchesSeverity && matchesSearch;
+      }).toList();
+    });
   }
 
   Color _getSeverityColor(String severity) {
     switch (severity) {
-      case 'high':
-        return Colors.red[600]!;
-      case 'medium':
-        return Colors.orange[600]!;
-      default:
-        return Colors.blue[600]!;
+      case 'high': return const Color(0xFFD32F2F); // Red
+      case 'medium': return const Color(0xFFF57C00); // Orange
+      default: return const Color(0xFF388E3C); // Green
     }
   }
 
   String _getSeverityLabel(String severity) {
     switch (severity) {
-      case 'high':
-        return 'Mataas';
-      case 'medium':
-        return 'Katamtaman';
-      default:
-        return 'Mababa';
+      case 'high': return 'Mataas';
+      case 'medium': return 'Katamtaman';
+      default: return 'Mababa';
     }
   }
 
-  void _speakText(String text, String id) async {
-    try {
-      await _ttsService.initialize();
-      setState(() {
-        _isSpeakingMap[id] = true;
-      });
-      await _ttsService.speak(text);
-      if(mounted) {
-        setState(() => _isSpeakingMap[id] = false);
-      }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isSpeakingMap[id] = false);
+  void _playGuideAudio(String guideId) async {
+    setState(() => _isSpeakingMap[guideId] = true);
+    final success = await _audioService.playGuide(guideId);
+    if (!success && mounted) {
+      setState(() => _isSpeakingMap[guideId] = false);
+      final guideNum = guideId.replaceAll(RegExp(r'\D'), '') ?? guideId;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Hindi makasalita: $e')),
+        SnackBar(
+          content: Text(
+            'Place MP3: assets/audio/guides/ttsTroubleshoot${guideNum}.mp3',
+          ),
+        ),
       );
     }
   }
 
-  void _stopSpeaking(String id) async {
-    await _ttsService.stop();
-    setState(() {
-      _isSpeakingMap[id] = false;
-    });
-  }
-
   void _initializeVideoController(String guideId, String videoAsset) {
-    if (!_videoControllers.containsKey(guideId) && videoAsset.isNotEmpty) {
-      _videoControllers[guideId] = VideoPlayerController.asset(videoAsset)
-        ..initialize().then((_) {
-          if(mounted) setState(() {});
-        })
-        ..addListener(() {
-          if(mounted) setState(() {});
-        });
+    if (_videoControllers[guideId] == null && videoAsset.isNotEmpty) {
+      final controller = VideoPlayerController.asset(videoAsset);
+      _videoControllers[guideId] = controller;
+      controller.initialize().then((_) {
+        if (mounted) setState(() {});
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Custom aquatic colors to match learning modules
+    final Color oceanDeep = const Color(0xFF006D77);
+    final Color oceanLight = const Color(0xFF83C5BE);
+
     return Scaffold(
-      appBar: AppBar(
-        elevation: 2,
-        // use theme's primary color instead of hardcoded green
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        leading: Padding(
-          padding: EdgeInsets.all(8),
-          child: Image.asset('assets/images/ostreaLogo.png'),
-        ),
-        title: Text(
-          'Gabay sa Problema',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-            color: Colors.white,
-          ),
-        ),
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.book),
-            tooltip: 'Diksyonaryo',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const DictionaryScreen()),
-              );
-            },
-          ),
-        ],
-      ),
+      backgroundColor: const Color(0xFFF0F4F8),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                // Filter section
-                Container(
-                  color: Colors.grey[50],
-                  padding: EdgeInsets.all(12),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        FilterChip(
-                          label: Text('Lahat ng Isyu'),
-                          selected: _selectedSeverity == null,
-                          selectedColor: Colors.green[200],
-                          onSelected: (selected) {
-                            setState(() => _selectedSeverity = null);
-                          },
-                        ),
-                        SizedBox(width: 8),
-                        FilterChip(
-                          label: Text('Mataas na Prioridad'),
-                          selected: _selectedSeverity == 'high',
-                          selectedColor: Colors.red[200],
-                          onSelected: (selected) {
-                            setState(() => _selectedSeverity = selected ? 'high' : null);
-                          },
-                        ),
-                        SizedBox(width: 8),
-                        FilterChip(
-                          label: Text('Katamtamang Prioridad'),
-                          selected: _selectedSeverity == 'medium',
-                          selectedColor: Colors.orange[200],
-                          onSelected: (selected) {
-                            setState(() => _selectedSeverity = selected ? 'medium' : null);
-                          },
-                        ),
-                      ],
-                    ),
+          ? Center(child: CircularProgressIndicator(color: oceanDeep))
+          : CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                _buildSliverAppBar(context, oceanDeep),
+                SliverToBoxAdapter(
+                  child: Column(
+                    children: [
+                      _buildHeader(oceanDeep, oceanLight),
+                      _buildFilterSection(oceanDeep, oceanLight),
+                    ],
                   ),
                 ),
-                // Guides list
-                Expanded(
-                  child: _selectedSeverity != null && _filteredGuides.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.search_off, size: 64, color: Colors.grey),
-                              SizedBox(height: 16),
-                              Text(
-                                'Walang nakitang gabay',
-                                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                              ),
-                            ],
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  sliver: _filteredGuidesList.isEmpty
+                      ? SliverToBoxAdapter(child: _buildEmptyState())
+                      : SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              return TweenAnimationBuilder(
+                                duration: Duration(milliseconds: 400 + (index * 100)),
+                                tween: Tween<double>(begin: 0, end: 1),
+                                builder: (context, double value, child) {
+                                  return Opacity(
+                                    opacity: value,
+                                    child: Transform.translate(
+                                      offset: Offset(0, 20 * (1 - value)),
+                                      child: _buildGuideCard(_filteredGuidesList[index], oceanDeep),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                            childCount: _filteredGuidesList.length,
                           ),
-                        )
-                      : ListView.builder(
-                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          itemCount: _selectedSeverity == null ? guides.length : _filteredGuides.length,
-                          itemBuilder: (context, index) {
-                            final guide = _selectedSeverity == null ? guides[index] : _filteredGuides[index];
-                            return Card(
-                              margin: EdgeInsets.only(bottom: 12),
-                              elevation: 2,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: ExpansionTile(
-                                title: Row(
-                                  children: [
-                                    Container(
-                                      width: 5,
-                                      height: 50,
-                                      decoration: BoxDecoration(
-                                        color: _getSeverityColor(guide.severity),
-                                        borderRadius: BorderRadius.only(
-                                          topLeft: Radius.circular(12),
-                                          bottomLeft: Radius.circular(12),
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            guide.title,
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                          SizedBox(height: 4),
-                                          Text(
-                                            guide.problem,
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey[600],
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Chip(
-                                      label: Text(
-                                        _getSeverityLabel(guide.severity),
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      backgroundColor: _getSeverityColor(guide.severity),
-                                    ),
-                                  ],
-                                ),
-                                children: [
-                                  Padding(
-                                    padding: EdgeInsets.all(16),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        if (guide.videoAsset != null && guide.videoAsset!.isNotEmpty)
-                                          Padding(
-                                            padding: EdgeInsets.only(bottom: 16),
-                                            child: _buildVideoSection(guide),
-                                          ),
-                                        Text(
-                                          'Problema',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                        SizedBox(height: 4),
-                                        Text(
-                                          guide.problem,
-                                          style: TextStyle(color: Colors.grey[700]),
-                                        ),
-                                        SizedBox(height: 12),
-                                        ElevatedButton.icon(
-                                          onPressed: (_isSpeakingMap[guide.id] ?? false)
-                                              ? () => _stopSpeaking(guide.id)
-                                              : () => _speakText(
-                                                  '${guide.problem}. ${guide.cause}',
-                                                  guide.id),
-                                          icon: Icon((_isSpeakingMap[guide.id] ?? false)
-                                              ? Icons.stop
-                                              : Icons.volume_up),
-                                          label: Text((_isSpeakingMap[guide.id] ?? false)
-                                              ? 'Tumitigil'
-                                              : 'Marinig'),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.green[600],
-                                            foregroundColor: Colors.white,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(height: 12),
-                                        Text(
-                                          AppStrings.cause,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                        SizedBox(height: 4),
-                                        Text(
-                                          guide.cause,
-                                          style: TextStyle(color: Colors.grey[700]),
-                                        ),
-                                        SizedBox(height: 16),
-                                        Text(
-                                          AppStrings.solutions,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                        SizedBox(height: 8),
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: guide.solutions
-                                              .map((solution) => Padding(
-                                                    padding: EdgeInsets.symmetric(vertical: 4),
-                                                    child: Row(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
-                                                        Text(
-                                                          '• ',
-                                                          style: TextStyle(
-                                                            fontWeight: FontWeight.bold,
-                                                            fontSize: 16,
-                                                          ),
-                                                        ),
-                                                        Expanded(
-                                                          child: Text(solution),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ))
-                                              .toList(),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
                         ),
-                      ),
+                ),
               ],
             ),
     );
   }
 
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return '$minutes:$seconds';
+  Widget _buildSliverAppBar(BuildContext context, Color primaryColor) {
+    return SliverAppBar(
+      expandedHeight: 48.0,
+      toolbarHeight: 48.0,
+      pinned: true,
+      elevation: 0,
+      stretch: true,
+      backgroundColor: primaryColor,
+      flexibleSpace: FlexibleSpaceBar(
+        centerTitle: false,
+        titlePadding: const EdgeInsetsDirectional.only(start: 20, bottom: 16),
+        title: const Text(
+          'Gabay sa Problema',
+          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.white),
+        ),
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [primaryColor, const Color(0xFF004D40)],
+            ),
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -30,
+                top: -20,
+                child: Icon(Icons.water, size: 200, color: Colors.white.withOpacity(0.05)),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.book_outlined, color: Colors.white),
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const DictionaryScreen()),
+          ),
+        ),
+      ],
+    );
   }
 
-  Widget _buildVideoSection(TroubleshootingGuide guide) {
-    if (guide.videoAsset == null || guide.videoAsset!.isEmpty) {
-      return SizedBox.shrink();
-    }
-
-    _initializeVideoController(guide.id, guide.videoAsset!);
-    final controller = _videoControllers[guide.id];
-
-    if (controller == null || !controller.value.isInitialized) {
-      return Container(
-        height: 200,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: Colors.grey[300],
-        ),
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
-
+  Widget _buildHeader(Color primaryColor, Color accentColor) {
     return Container(
       width: double.infinity,
-      height: 280, // Increased for controls
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.black,
+        color: primaryColor,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
+        ),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 25),
+      child: TextField(
+        onChanged: (val) {
+          _searchQuery = val;
+          _applyFilters();
+        },
+        decoration: InputDecoration(
+          hintText: 'Search...',
+          hintStyle: TextStyle(color: Colors.grey[400]),
+          prefixIcon: Icon(Icons.search, color: primaryColor),
+          fillColor: Colors.white,
+          filled: true,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 15),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterSection(Color primaryColor, Color accentColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 15),
+      child: SizedBox(
+        height: 40,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          children: [
+            _filterChip(null, 'Lahat'),
+            _filterChip('high', 'Mataas'),
+            _filterChip('medium', 'Katamtaman'),
+            _filterChip('low', 'Mababa'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _filterChip(String? severity, String label) {
+    final isSelected = _selectedSeverity == severity;
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(right: 10),
+      child: FilterChip(
+        label: Text(label, style: TextStyle(
+          color: isSelected ? Colors.white : Colors.black87,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        )),
+        selected: isSelected,
+        onSelected: (selected) {
+          setState(() {
+            _selectedSeverity = selected ? severity : null;
+            _applyFilters();
+          });
+        },
+        backgroundColor: Colors.white,
+        selectedColor: theme.colorScheme.primary,
+        checkmarkColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(color: isSelected ? Colors.transparent : Colors.grey[300]!),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGuideCard(TroubleshootingGuide guide, Color primaryColor) {
+    final theme = Theme.of(context);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 8,
-            offset: Offset(0, 2),
+            color: primaryColor.withOpacity(0.05),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Column(
+      child: Theme(
+        data: theme.copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          onExpansionChanged: (expanded) {
+            if (expanded && guide.videoAsset != null) {
+              _initializeVideoController(guide.id, guide.videoAsset!);
+            }
+          },
+          leading: CircleAvatar(
+            backgroundColor: _getSeverityColor(guide.severity).withOpacity(0.1),
+            child: Icon(Icons.warning_rounded, color: _getSeverityColor(guide.severity)),
+          ),
+          title: Text(
+            guide.title, 
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF2D3142))
+          ),
+          subtitle: Text(
+            _getSeverityLabel(guide.severity),
+            style: TextStyle(color: _getSeverityColor(guide.severity), fontWeight: FontWeight.w600, fontSize: 13),
+          ),
           children: [
-            // Video player
-            Expanded(
-              child: Stack(
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  VideoPlayer(controller),
-                  // Play/pause overlay
-                  Positioned.fill(
-                    child: Center(
-                      child: FloatingActionButton(
-                        backgroundColor: Colors.white70,
-                        onPressed: () {
-                          setState(() {
-                            if (controller.value.isPlaying) {
-                              controller.pause();
-                            } else {
-                              controller.play();
-                            }
-                          });
-                        },
-                        child: Icon(
-                          controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
-                          color: Colors.green[700],
+                  if (guide.videoAsset != null && guide.videoAsset!.isNotEmpty)
+                    _buildVideoSection(guide),
+                  
+                  const Text('Ano ang problema?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  const SizedBox(height: 4),
+                  Text(guide.problem, style: TextStyle(color: Colors.grey[700], height: 1.4)),
+                  
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: (_isSpeakingMap[guide.id] ?? false)
+                              ? () => _audioService.stop().then((_) => setState(() => _isSpeakingMap[guide.id] = false))
+                              : () => _playGuideAudio(guide.id),
+                          icon: Icon((_isSpeakingMap[guide.id] ?? false) ? Icons.stop : Icons.volume_up, size: 20),
+                          label: Text((_isSpeakingMap[guide.id] ?? false) ? 'Itigil' : 'Pakinggan'),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: theme.colorScheme.secondary),
+                            foregroundColor: theme.colorScheme.secondary,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            // Control bar
-            Container(
-              height: 50,
-              color: Colors.black87,
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  // Play/Pause button
-                  IconButton(
-                    icon: Icon(
-                      controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
-                      color: Colors.white,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        if (controller.value.isPlaying) {
-                          controller.pause();
-                        } else {
-                          controller.play();
-                        }
-                      });
-                    },
+                  
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Divider(),
                   ),
-                  // Skip backward
-                  IconButton(
-                    icon: Icon(Icons.replay_10, color: Colors.white),
-                    onPressed: () {
-                      final current = controller.value.position;
-                      final newPosition = current - Duration(seconds: 10);
-                      controller.seekTo(newPosition > Duration.zero ? newPosition : Duration.zero);
-                    },
-                  ),
-                  // Progress bar
-                  Expanded(
-                    child: Slider(
-                      value: controller.value.position.inSeconds.toDouble(),
-                      max: controller.value.duration.inSeconds.toDouble(),
-                      onChanged: (value) {
-                        controller.seekTo(Duration(seconds: value.toInt()));
-                      },
-                      activeColor: Colors.green,
-                      inactiveColor: Colors.white30,
-                    ),
-                  ),
-                  // Skip forward
-                  IconButton(
-                    icon: Icon(Icons.forward_10, color: Colors.white),
-                    onPressed: () {
-                      final current = controller.value.position;
-                      final duration = controller.value.duration;
-                      final newPosition = current + Duration(seconds: 10);
-                      controller.seekTo(newPosition < duration ? newPosition : duration);
-                    },
-                  ),
-                  // Time display
-                  Text(
-                    '${_formatDuration(controller.value.position)} / ${_formatDuration(controller.value.duration)}',
-                    style: TextStyle(color: Colors.white, fontSize: 12),
-                  ),
+                  
+                  Text(AppStrings.cause, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  Text(guide.cause, style: TextStyle(color: Colors.grey[700])),
+                  
+                  const SizedBox(height: 16),
+                  Text(AppStrings.solutions, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF388E3C))),
+                  const SizedBox(height: 8),
+                  ...guide.solutions.map((s) => _buildSolutionItem(s)),
                 ],
               ),
             ),
@@ -507,12 +377,86 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
     );
   }
 
+  Widget _buildSolutionItem(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.check_circle_outline, size: 18, color: Color(0xFF388E3C)),
+          const SizedBox(width: 8),
+          Expanded(child: Text(text, style: const TextStyle(fontSize: 14, height: 1.3))),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVideoSection(TroubleshootingGuide guide) {
+    final controller = _videoControllers[guide.id];
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8)],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: controller == null || !controller.value.isInitialized
+          ? Container(height: 180, color: Colors.grey[200], child: const Center(child: CircularProgressIndicator()))
+          : AspectRatio(
+              aspectRatio: controller.value.aspectRatio,
+              child: Stack(
+                alignment: Alignment.bottomCenter,
+                children: [
+                  VideoPlayer(controller),
+                  _VideoControls(controller: controller),
+                  VideoProgressIndicator(controller, allowScrubbing: true, colors: const VideoProgressColors(playedColor: Colors.green)),
+                ],
+              ),
+            ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.search_off_rounded, size: 80, color: Colors.grey[300]),
+          const SizedBox(height: 16),
+          Text('Walang nakitang gabay.', style: TextStyle(color: Colors.grey[500], fontSize: 16)),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
-    for (var controller in _videoControllers.values) {
-      controller?.dispose();
-    }
-    _ttsService.dispose();
+    for (var c in _videoControllers.values) { c?.dispose(); }
+    _audioPlaybackSubscription.cancel();
+    _audioService.dispose();
     super.dispose();
+  }
+}
+
+class _VideoControls extends StatelessWidget {
+  final VideoPlayerController controller;
+  const _VideoControls({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => controller.value.isPlaying ? controller.pause() : controller.play(),
+      child: Container(
+        color: Colors.transparent,
+        child: Center(
+          child: Icon(
+            controller.value.isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
+            color: Colors.white.withOpacity(0.7),
+            size: 60,
+          ),
+        ),
+      ),
+    );
   }
 }

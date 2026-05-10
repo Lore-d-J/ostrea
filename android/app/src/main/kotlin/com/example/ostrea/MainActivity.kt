@@ -1,116 +1,151 @@
 package com.example.ostrea
 
+import android.os.Bundle
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
+import android.util.Log
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import android.speech.tts.TextToSpeech
-import java.util.Locale
+import java.util.*
 
-class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.ostrea.app/tts"
+/**
+ * MainActivity with basic Android Text-to-Speech support
+ * Uses Android's default TTS engine for offline Filipino speech
+ */
+class MainActivity : FlutterActivity(), TextToSpeech.OnInitListener {
+    private val CHANNEL = "com.example.ostrea/tts"
     private var tts: TextToSpeech? = null
-    private var isTtsReady = false
+    private var isInitialized = false
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
-            .setMethodCallHandler { call, result ->
-                when (call.method) {
-                    "speak" -> {
-                        val text = call.argument<String>("text")
-                        val language = call.argument<String>("language") ?: "fil"
-                        if (text != null) {
-                            speak(text, language)
-                        }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "initialize" -> {
+                    initializeTts()
+                    result.success(null)
+                }
+                "speak" -> {
+                    val text = call.argument<String>("text")
+                    val language = call.argument<String>("language") ?: "tl"
+                    if (text != null) {
+                        speak(text, language)
                         result.success(null)
+                    } else {
+                        result.error("INVALID_ARGUMENT", "Text is required", null)
                     }
-                    "stop" -> {
-                        tts?.stop()
-                        result.success(null)
-                    }
-                    "pause" -> {
-                        tts?.stop()
-                        result.success(null)
-                    }
-                    "setLanguage" -> {
-                        val language = call.argument<String>("language") ?: "fil"
-                        setLanguage(language)
-                        result.success(null)
-                    }
-                    else -> result.notImplemented()
+                }
+                "stop" -> {
+                    stop()
+                    result.success(null)
+                }
+                "pause" -> {
+                    pause()
+                    result.success(null)
+                }
+                "dispose" -> {
+                    dispose()
+                    result.success(null)
+                }
+                else -> {
+                    result.notImplemented()
                 }
             }
-
-        initializeTts()
+        }
     }
 
     private fun initializeTts() {
         if (tts == null) {
-            tts = TextToSpeech(this) { status ->
-                if (status == TextToSpeech.SUCCESS) {
-                    isTtsReady = true
-                    setLanguage("fil")  // Default to Tagalog
-                    selectBestVoice()  // Automatically select the best available voice
-                }
+            tts = TextToSpeech(this, this)
+        }
+    }
+
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            isInitialized = true
+
+            // Set Filipino language preferences
+            val filipinoLocale = Locale("tl", "PH")
+            val result = tts?.setLanguage(filipinoLocale)
+
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                // Try alternative Filipino locale
+                val altLocale = Locale("fil", "PH")
+                tts?.setLanguage(altLocale)
+                Log.w("TTS", "Filipino locale not fully supported, using alternative")
             }
+
+            // Set speech parameters for clear Filipino speech
+            tts?.setSpeechRate(0.45f)   // Natural speech rate
+            tts?.setPitch(1.0f)         // Natural pitch
+            // Note: Volume is controlled by Android system settings
+
+            // Listen for speech completion
+            tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                override fun onStart(utteranceId: String?) {
+                    Log.d("TTS", "Speech started: $utteranceId")
+                }
+
+                override fun onDone(utteranceId: String?) {
+                    Log.d("TTS", "Speech completed: $utteranceId")
+                }
+
+                override fun onError(utteranceId: String?) {
+                    Log.e("TTS", "Speech error: $utteranceId")
+                }
+
+                override fun onError(utteranceId: String?, errorCode: Int) {
+                    Log.e("TTS", "Speech error: $utteranceId (code: $errorCode)")
+                }
+            })
+
+            Log.d("TTS", "Android TTS initialized successfully")
+        } else {
+            Log.e("TTS", "TTS initialization failed with status: $status")
+            isInitialized = false
         }
     }
 
     private fun speak(text: String, language: String) {
-        if (tts != null && isTtsReady) {
-            setLanguage(language)
-            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null)
+        if (!isInitialized || tts == null) {
+            Log.e("TTS", "TTS not initialized, initializing now...")
+            initializeTts()
+            return
         }
+
+        // Set language based on parameter
+        when (language) {
+            "tl", "fil" -> tts?.setLanguage(Locale("tl", "PH"))
+            else -> tts?.setLanguage(Locale("tl", "PH"))
+        }
+
+        val utteranceId = System.currentTimeMillis().toString()
+        Log.d("TTS", "Speaking: $text (language: $language)")
+        tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
     }
 
-    private fun setLanguage(language: String) {
-        if (tts != null && isTtsReady) {
-            val locale = when (language) {
-                "fil" -> Locale("fil", "PH")
-                "en" -> Locale.ENGLISH
-                "en-US" -> Locale("en", "US")
-                "en-GB" -> Locale("en", "GB")
-                else -> Locale(language)
-            }
-            tts?.language = locale
-        }
+    private fun stop() {
+        tts?.stop()
+        Log.d("TTS", "Speech stopped")
     }
 
-    private fun selectBestVoice() {
-        if (tts != null && isTtsReady) {
-            val voices = tts?.voices ?: emptySet()
-            var bestVoice: android.speech.tts.Voice? = null
+    private fun pause() {
+        // Android TTS doesn't have pause, so we stop instead
+        tts?.stop()
+        Log.d("TTS", "Speech paused (stopped)")
+    }
 
-            // Prioritize voices with "neural", "wavenet", or high quality
-            for (voice in voices) {
-                if (voice.name.contains("neural", ignoreCase = true) ||
-                    voice.name.contains("wavenet", ignoreCase = true) ||
-                    voice.quality == android.speech.tts.Voice.QUALITY_VERY_HIGH) {
-                    // Prefer Tagalog voices, but accept English if better quality
-                    if (voice.locale.language == "fil" || voice.locale.language == "tl") {
-                        bestVoice = voice
-                        break  // Found a good Tagalog voice
-                    } else if (bestVoice == null || voice.quality > bestVoice.quality) {
-                        bestVoice = voice
-                    }
-                }
-            }
-
-            // If no high-quality voice found, pick the first available
-            if (bestVoice == null && voices.isNotEmpty()) {
-                bestVoice = voices.first()
-            }
-
-            // Set the selected voice
-            if (bestVoice != null) {
-                tts?.voice = bestVoice
-            }
-        }
+    private fun dispose() {
+        tts?.shutdown()
+        tts = null
+        isInitialized = false
+        Log.d("TTS", "TTS disposed")
     }
 
     override fun onDestroy() {
-        tts?.shutdown()
+        dispose()
         super.onDestroy()
     }
 }

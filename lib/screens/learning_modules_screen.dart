@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Added for Haptics
 import 'package:ostrea/models/learning_module.dart';
 import 'package:ostrea/screens/learning_module_screen.dart';
 import 'package:ostrea/services/local_storage_service.dart';
@@ -16,24 +17,24 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
   List<LearningModule> modules = [];
   List<String> _completedModules = [];
   bool _isLoading = true;
-  // bookmarks removed
 
   @override
   void initState() {
     super.initState();
-    _loadModules();
-    _loadProgress();
+    _initData();
   }
 
-  void _loadModules() async {
-    final modules = await LocalDataService().getLearningModules();
-    setState(() {
-      this.modules = modules;
-      _isLoading = false;
-    });
+  void _initData() async {
+    await Future.wait([_loadModules(), _loadProgress()]);
+    if (mounted) setState(() => _isLoading = false);
   }
 
-  void _loadProgress() async {
+  Future<void> _loadModules() async {
+    final fetchedModules = await LocalDataService().getLearningModules();
+    modules = fetchedModules;
+  }
+
+  Future<void> _loadProgress() async {
     final completed = await LocalStorageService.getCompletedModules();
     setState(() {
       _completedModules = completed;
@@ -41,199 +42,209 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
   }
 
   void _navigateToModule(LearningModule module) {
+    HapticFeedback.lightImpact(); // Subtle vibration for Android
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => LearningModuleScreen(module: module),
       ),
-    ).then((_) {
-      _loadProgress();
-    });
+    ).then((_) => _loadProgress());
   }
 
   @override
   Widget build(BuildContext context) {
+    // Custom aquatic colors
+    final Color oceanDeep = const Color(0xFF006D77);
+    final Color oceanLight = const Color(0xFF83C5BE);
+
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        leading: Padding(
-          padding: EdgeInsets.all(8),
-          child: Image.asset('assets/images/ostreaLogo.png'),
+      backgroundColor: const Color(0xFFF0F4F8), 
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator(color: oceanDeep))
+          : CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                _buildSliverAppBar(context, oceanDeep),
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        // Entry animation logic
+                        return TweenAnimationBuilder(
+                          duration: Duration(milliseconds: 400 + (index * 100)),
+                          tween: Tween<double>(begin: 0, end: 1),
+                          builder: (context, double value, child) {
+                            return Opacity(
+                              opacity: value,
+                              child: Transform.translate(
+                                offset: Offset(0, 30 * (1 - value)),
+                                child: _buildModuleCard(modules[index], oceanDeep),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      childCount: modules.length,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildSliverAppBar(BuildContext context, Color primaryColor) {
+    return SliverAppBar(
+      expandedHeight: 48.0,
+      toolbarHeight: 48.0,
+      pinned: true,
+      elevation: 0,
+      stretch: true,
+      backgroundColor: primaryColor,
+      flexibleSpace: FlexibleSpaceBar(
+        centerTitle: false,
+        titlePadding: const EdgeInsetsDirectional.only(start: 20, bottom: 16),
+        title: const Text(
+          'Mga Modulo',
+          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.white),
         ),
-        title: Text('Mga Modulo'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.book),
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [primaryColor, const Color(0xFF004D40)],
+            ),
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -30,
+                top: -20,
+                child: Icon(Icons.water, size: 200, color: Colors.white.withOpacity(0.05)),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 8.0),
+          child: IconButton(
+            icon: const Icon(Icons.auto_stories, color: Colors.white),
             tooltip: 'Diksyonaryo',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const DictionaryScreen()),
-              );
-            },
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const DictionaryScreen()),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModuleCard(LearningModule module, Color primaryColor) {
+    final bool isCompleted = _completedModules.contains(module.id);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              padding: EdgeInsets.all(12),
-              itemCount: modules.length,
-        itemBuilder: (context, index) {
-          final module = modules[index];
-          final isCompleted = _completedModules.contains(module.id);
-
-          return Card(
-            margin: EdgeInsets.only(bottom: 12),
-            elevation: 6,
-            shadowColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.white,
-                    Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _navigateToModule(module),
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                // Icon Stack
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: isCompleted ? Colors.green.withOpacity(0.1) : primaryColor.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    Icon(
+                      isCompleted ? Icons.verified : Icons.waves,
+                      color: isCompleted ? Colors.green : primaryColor,
+                      size: 30,
+                    ),
                   ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
                 ),
-              ),
-              child: InkWell(
-                onTap: () => _navigateToModule(module),
-                borderRadius: BorderRadius.circular(16),
-                child: Padding(
-                  padding: EdgeInsets.all(20),
+                const SizedBox(width: 20),
+                // Text Area
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              Icons.school,
-                              color: Theme.of(context).colorScheme.primary,
-                              size: 24,
-                            ),
-                          ),
-                          SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  module.title,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleLarge
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: Theme.of(context).colorScheme.primary,
-                                      ),
-                                ),
-                                SizedBox(height: 4),
-                                Text(
-                                  module.description,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.copyWith(
-                                        color: Colors.grey[700],
-                                      ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (isCompleted)
-                            Container(
-                              padding: EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.green.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Icon(
-                                Icons.check_circle,
-                                color: Colors.green[600],
-                                size: 24,
-                              ),
-                            ),
-                        ],
+                      Text(
+                        module.title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2D3142),
+                        ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 4),
+                      Text(
+                        module.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                      ),
+                      const SizedBox(height: 12),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.article,
-                                  size: 16,
-                                  color: Theme.of(context).colorScheme.secondary,
-                                ),
-                                SizedBox(width: 4),
-                                Text(
-                                  '${module.contentSections.length} seksyon',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Theme.of(context).colorScheme.secondary,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.tertiary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.play_circle_outline,
-                                  size: 16,
-                                  color: Theme.of(context).colorScheme.tertiary,
-                                ),
-                                SizedBox(width: 4),
-                                Text(
-                                  'Simulan',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Theme.of(context).colorScheme.tertiary,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          _buildSmallTag(Icons.menu_book, "${module.contentSections.length}", Colors.orange),
+                          const SizedBox(width: 12),
+                          if (isCompleted)
+                            _buildSmallTag(Icons.check_circle, "Tapos na", Colors.green)
+                          else
+                            _buildSmallTag(Icons.arrow_forward, "Simulan", primaryColor),
                         ],
                       ),
                     ],
                   ),
                 ),
-              ),
+              ],
             ),
-          );
-        },
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _buildSmallTag(IconData icon, String label, Color color) {
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: color),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12, 
+            fontWeight: FontWeight.bold, 
+            color: color.withOpacity(0.8),
+          ),
+        ),
+      ],
     );
   }
 }

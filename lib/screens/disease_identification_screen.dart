@@ -1,8 +1,11 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:ostrea/services/disease_identification_service.dart';
+import 'package:ostrea/services/image_classifier_service.dart';
+import 'package:ostrea/models/prediction_result.dart';
+import 'package:ostrea/utils/recommendation_helper.dart';
+import 'package:ostrea/widgets/result_card.dart';
+import 'package:ostrea/widgets/recommendation_card.dart';
 import 'package:ostrea/localization/app_strings.dart';
 
 class DiseaseIdentificationScreen extends StatefulWidget {
@@ -13,20 +16,21 @@ class DiseaseIdentificationScreen extends StatefulWidget {
       _DiseaseIdentificationScreenState();
 }
 
-class _DiseaseIdentificationScreenState extends State<DiseaseIdentificationScreen> {
-  final DiseaseIdentificationService _service =
-      DiseaseIdentificationService();
+class _DiseaseIdentificationScreenState
+    extends State<DiseaseIdentificationScreen> {
+  final ImageClassifierService _classifier = ImageClassifierService();
   final ImagePicker _imagePicker = ImagePicker();
 
   File? _selectedImage;
-  Map<String, dynamic>? _identificationResult;
+  PredictionResult? _prediction;
+  Recommendation? _recommendation;
   bool _isProcessing = false;
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _service.initialize();
+    _classifier.initialize();
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -35,7 +39,8 @@ class _DiseaseIdentificationScreenState extends State<DiseaseIdentificationScree
       if (pickedFile != null) {
         setState(() {
           _selectedImage = File(pickedFile.path);
-          _identificationResult = null;
+          _prediction = null;
+          _recommendation = null;
           _errorMessage = null;
         });
         _identifyDisease();
@@ -57,10 +62,12 @@ class _DiseaseIdentificationScreenState extends State<DiseaseIdentificationScree
 
     try {
       final imageBytes = await _selectedImage!.readAsBytes();
-      final result = await _service.identifyDisease(imageBytes);
+      final prediction = await _classifier.classifyImage(imageBytes);
+      final recommendation = getRecommendation(prediction.label);
 
       setState(() {
-        _identificationResult = result;
+        _prediction = prediction;
+        _recommendation = recommendation;
         _isProcessing = false;
       });
     } catch (e) {
@@ -73,286 +80,344 @@ class _DiseaseIdentificationScreenState extends State<DiseaseIdentificationScree
 
   @override
   Widget build(BuildContext context) {
+    // Custom aquatic colors to match learning modules
+    final Color oceanDeep = const Color(0xFF006D77);
+    final Color oceanLight = const Color(0xFF83C5BE);
+
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        leading: Padding(
-          padding: EdgeInsets.all(8),
-          child: Image.asset('assets/images/ostreaLogo.png'),
-        ),
-        title: Text(AppStrings.titleSpeciesID),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Instructions
-            Container(
-              color: Colors.green[50],
-              padding: EdgeInsets.all(16),
+      backgroundColor: const Color(0xFFF0F4F8),
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          _buildSliverAppBar(context, oceanDeep),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+            sliver: SliverToBoxAdapter(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    AppStrings.speciesTitle,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: Colors.green[800],
-                          fontWeight: FontWeight.bold,
+                  // Instructions
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: oceanDeep,
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(30),
+                        bottomRight: Radius.circular(30),
+                      ),
+                    ),
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 25),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Oyster Discoloration Assessment',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Upload or capture an image of an oyster to assess discoloration and receive a recommendation.',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white.withOpacity(0.9),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    AppStrings.speciesInstructions,
-                    style: TextStyle(color: Colors.green[700]),
-                  ),
-                  SizedBox(height: 12),
+
+                  const SizedBox(height: 20),
+
+                  // Image picker buttons
                   Row(
                     children: [
-                      Icon(Icons.check_circle, color: Colors.green[700]),
-                      SizedBox(width: 8),
                       Expanded(
-                        child: Text(
-                          AppStrings.goodLighting,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.green[700],
-                          ),
+                        child: _buildImagePickerButton(
+                          icon: Icons.camera_alt,
+                          label: 'Camera',
+                          onPressed: () => _pickImage(ImageSource.camera),
+                          color: oceanDeep,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildImagePickerButton(
+                          icon: Icons.photo_library,
+                          label: 'Gallery',
+                          onPressed: () => _pickImage(ImageSource.gallery),
+                          color: oceanLight,
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-            SizedBox(height: 20),
-            // Image preview or placeholder
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: _selectedImage != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: FutureBuilder<Uint8List>(
-                        future: _selectedImage!.readAsBytes(),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
-                            return Image.memory(
-                              snapshot.data!,
-                              height: 300,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                            );
-                          }
-                          return Container(
-                            height: 300,
-                            width: double.infinity,
-                            color: Colors.grey[200],
-                            child: Center(child: CircularProgressIndicator()),
-                          );
-                        },
+
+                  const SizedBox(height: 20),
+
+                  // Image display area
+                  if (_selectedImage != null) ...[
+                    Container(
+                      height: 300,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: oceanDeep.withOpacity(0.1),
+                            blurRadius: 15,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
                       ),
-                    )
-                  : Container(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.file(_selectedImage!, fit: BoxFit.cover),
+                      ),
+                    ),
+                  ] else ...[
+                    Container(
                       height: 250,
                       decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Colors.grey[300]!,
-                          width: 2,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                        color: Colors.grey[50],
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.image_not_supported,
-                              size: 48,
-                              color: Colors.grey[400],
-                            ),
-                            SizedBox(height: 12),
-                            Text(
-                              AppStrings.noImageSelected,
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-            ),
-            SizedBox(height: 20),
-            // Image selection buttons
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => _pickImage(ImageSource.camera),
-                      icon: Icon(Icons.camera_alt),
-                      label: Text(AppStrings.takePhoto),
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => _pickImage(ImageSource.gallery),
-                      icon: Icon(Icons.photo_library),
-                      label: Text(AppStrings.uploadFromGallery),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 20),
-            // Processing indicator
-            if (_isProcessing)
-              Padding(
-                padding: EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 12),
-                    Text('${AppStrings.loading}..'),
-                  ],
-                ),
-              ),
-            // Error message
-            if (_errorMessage != null)
-              Padding(
-                padding: EdgeInsets.all(16),
-                child: Container(
-                  padding: EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.red[50],
-                    border: Border.all(color: Colors.red[300]!),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    _errorMessage!,
-                    style: TextStyle(color: Colors.red[700]),
-                  ),
-                ),
-              ),
-            // Results
-            if (_identificationResult != null && !_isProcessing)
-              Padding(
-                padding: EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Main result
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.green[50],
-                        border: Border.all(color: Colors.green[300]!),
-                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.grey[300]!),
                       ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
+                          Icon(
+                            Icons.image_outlined,
+                            size: 64,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
                           Text(
-                            AppStrings.identifyResult,
+                            'No image selected',
                             style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.green[700],
-                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
-                          SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           Text(
-                            _identificationResult!['disease'],
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
-                                ?.copyWith(
-                                  color: Colors.green[800],
-                                ),
-                          ),
-                          SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Text(
-                                '${AppStrings.confidence}: ',
-                                style: TextStyle(
-                                  color: Colors.green[700],
-                                ),
-                              ),
-                              Text(
-                                '${_identificationResult!['confidence']}%',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  color: Colors.green[800],
-                                ),
-                              ),
-                            ],
+                            'Choose an image to assess oyster discoloration',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[500],
+                            ),
+                            textAlign: TextAlign.center,
                           ),
                         ],
                       ),
                     ),
-                    SizedBox(height: 16),
-                    // Alternative predictions
-                    Text(
-                      AppStrings.allPredictions,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    SizedBox(height: 8),
-                    Column(
-                      children: (_identificationResult!['allPredictions']
-                              as List<Map<String, dynamic>>)
-                          .skip(1)
-                          .map((pred) => Padding(
-                                padding: EdgeInsets.symmetric(vertical: 8),
-                                child: Container(
-                                  padding: EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: Colors.grey[300]!,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          pred['label'],
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                      ),
-                                      Text(
-                                        '${pred['confidence']}%',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey[700],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ))
-                          .toList(),
+                  ],
+
+                  // Processing indicator
+                  if (_isProcessing) ...[
+                    const SizedBox(height: 20),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(15),
+                        boxShadow: [
+                          BoxShadow(
+                            color: oceanDeep.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          CircularProgressIndicator(color: oceanDeep),
+                          const SizedBox(height: 12),
+                          Text(
+                            '${AppStrings.loading}..',
+                            style: TextStyle(
+                              color: oceanDeep,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
+
+                  // Results
+                  if (_prediction != null && _recommendation != null) ...[
+                    const SizedBox(height: 20),
+                    ResultCard(
+                      prediction: _prediction!,
+                      recommendation: _recommendation!,
+                    ),
+                    const SizedBox(height: 18),
+                    RecommendationCard(recommendation: _recommendation!),
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.info_outline,
+                            color: Colors.blueAccent,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Results are AI-assisted recommendations only.',
+                              style: TextStyle(color: Colors.grey[800]),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  // Error message
+                  if (_errorMessage != null) ...[
+                    const SizedBox(height: 20),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.red[50],
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(color: Colors.red[200]!),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            color: Colors.red[600],
+                            size: 24,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              _errorMessage!,
+                              style: TextStyle(
+                                color: Colors.red[800],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSliverAppBar(BuildContext context, Color primaryColor) {
+    return SliverAppBar(
+      expandedHeight: 48.0,
+      toolbarHeight: 48.0,
+      pinned: true,
+      elevation: 0,
+      stretch: true,
+      backgroundColor: primaryColor,
+      flexibleSpace: FlexibleSpaceBar(
+        centerTitle: false,
+        titlePadding: const EdgeInsetsDirectional.only(start: 20, bottom: 16),
+        title: Text(
+          'Oyster Discoloration Assessment',
+          style: const TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 18,
+            color: Colors.white,
+          ),
+        ),
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [primaryColor, const Color(0xFF004D40)],
+            ),
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -30,
+                top: -20,
+                child: Icon(
+                  Icons.water,
+                  size: 200,
+                  color: Colors.white.withOpacity(0.05),
                 ),
               ),
-            SizedBox(height: 20),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  @override
-  void dispose() {
-    _service.dispose();
-    super.dispose();
+  Widget _buildImagePickerButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+    required Color color,
+  }) {
+    return Container(
+      height: 80,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(15),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, color: color, size: 24),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

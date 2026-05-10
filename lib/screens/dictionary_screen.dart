@@ -77,6 +77,7 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF0F4F8), // Match learning modules background
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
@@ -102,7 +103,7 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                       // Search Bar
                       TextField(
                         decoration: InputDecoration(
-                          hintText: 'Maghanap ng salita o salita...',
+                          hintText: 'Search...',
                           prefixIcon: Icon(Icons.search),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -188,11 +189,18 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                           itemCount: _filteredEntries.length,
                           itemBuilder: (context, index) {
                             final entry = _filteredEntries[index];
-                            return Card(
-                              margin: EdgeInsets.only(bottom: 12),
-                              elevation: 2,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                            return Container(
+                              margin: EdgeInsets.only(bottom: 16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(24),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                                    blurRadius: 15,
+                                    offset: const Offset(0, 5),
+                                  ),
+                                ],
                               ),
                               child: ExpansionTile(
                                 title: Row(

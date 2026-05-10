@@ -39,6 +39,10 @@ android {
     }
 }
 
+dependencies {
+    // No additional dependencies needed - using Android built-in TTS
+}
+
 flutter {
     source = "../.."
 }

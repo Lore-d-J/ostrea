@@ -1,11 +1,12 @@
 import 'package:flutter/services.dart';
-// localization_service no longer required here; app language is fixed to Tagalog
 
+/// OFFLINE Text-to-Speech Service for Filipino/Tagalog
+/// Uses Android's native TTS engines (Google TTS, Samsung TTS, Pico TTS)
+/// No internet connection required - works completely offline
 class TextToSpeechService {
   static final TextToSpeechService _instance = TextToSpeechService._internal();
-  static const platform = MethodChannel('com.ostrea.app/tts');
+  static const MethodChannel _platform = MethodChannel('com.example.ostrea/tts');
   bool _isInitialized = false;
-  // No longer store localization service; app language is Tagalog-only
 
   factory TextToSpeechService() {
     return _instance;
@@ -15,46 +16,58 @@ class TextToSpeechService {
 
   Future<void> initialize() async {
     if (_isInitialized) return;
-    _isInitialized = true;
+
+    try {
+      await _platform.invokeMethod('initialize');
+      _isInitialized = true;
+    } on PlatformException catch (e) {
+      throw Exception('Failed to initialize TTS: ${e.message}');
+    }
   }
 
-  Future<void> speak(String text) async {
+  /// Main function to speak Filipino/Tagalog text with clear pronunciation
+  Future<void> speakTagalog(String text) async {
     try {
       if (!_isInitialized) {
         await initialize();
       }
-      // Use native Android TTS through method channel — always Tagalog (fil)
-      await platform.invokeMethod('speak', {'text': text, 'language': 'fil'});
+
+      await _platform.invokeMethod('speak', {
+        'text': text,
+        'language': 'tl',
+      });
     } catch (e) {
       rethrow;
     }
   }
 
+  /// Legacy speak method for backward compatibility
+  Future<void> speak(String text) async {
+    await speakTagalog(text);
+  }
+
   Future<void> stop() async {
     try {
-      await platform.invokeMethod('stop');
+      await _platform.invokeMethod('stop');
     } catch (e) {
-      // Handle error silently
+      rethrow;
     }
   }
 
   Future<void> pause() async {
     try {
-      await platform.invokeMethod('pause');
+      await _platform.invokeMethod('pause');
     } catch (e) {
-      // Handle error silently
+      rethrow;
     }
   }
 
-  Future<void> setLanguage(String languageCode) async {
+  Future<void> dispose() async {
     try {
-      await platform.invokeMethod('setLanguage', {'language': languageCode});
+      await _platform.invokeMethod('dispose');
+      _isInitialized = false;
     } catch (e) {
-      // Handle error silently
+      rethrow;
     }
-  }
-
-  void dispose() {
-    // Cleanup
   }
 }

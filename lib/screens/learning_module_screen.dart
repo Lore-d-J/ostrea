@@ -1,8 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:ostrea/models/learning_module.dart';
 import 'package:ostrea/services/local_storage_service.dart';
-import 'package:ostrea/services/text_to_speech_service.dart';
+import 'package:ostrea/services/audio_playback_service.dart';
 import 'package:ostrea/localization/app_strings.dart';
 import 'package:ostrea/screens/dictionary_screen.dart';
 
@@ -19,14 +21,21 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
   int _currentSection = 0;
   bool _isSpeaking = false;
   late PageController _pageController;
-  late TextToSpeechService _ttsService;
+  late AudioPlaybackService _audioService;
+  late StreamSubscription<bool> _audioPlaybackSubscription;
   VideoPlayerController? _videoController;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
-    _ttsService = TextToSpeechService();
+    _audioService = AudioPlaybackService();
+    _audioPlaybackSubscription = _audioService.playingStream.listen((isPlaying) {
+      if (!mounted) return;
+      setState(() {
+        _isSpeaking = isPlaying;
+      });
+    });
     _initializeVideo();
   }
 
@@ -42,23 +51,29 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
     }
   }
 
-  void _speakContent(String text) async {
-    try {
-      await _ttsService.initialize();
+  void _playContentSection(int sectionIndex) async {
+    setState(() {
+      _isSpeaking = true;
+    });
+
+    final success = await _audioService.playModuleSection(widget.module.id, sectionIndex);
+    if (!success && mounted) {
       setState(() {
-        _isSpeaking = true;
+        _isSpeaking = false;
       });
-      await _ttsService.speak(text);
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Hindi makasalita: $e')));
+      final moduleNum = widget.module.id.replaceAll(RegExp(r'\D'), '').replaceFirst(RegExp(r'^0+'), '') ?? '1';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Place MP3: assets/audio/modules/${widget.module.id}/ttsModule${moduleNum}Section${sectionIndex + 1}.mp3',
+          ),
+        ),
+      );
     }
   }
 
   void _stopSpeaking() async {
-    await _ttsService.stop();
+    await _audioService.stop();
     setState(() {
       _isSpeaking = false;
     });
@@ -92,11 +107,11 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
       height: 280,
       margin: EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(24),
         color: Colors.black,
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(24),
         child: Column(
           children: [
             Expanded(
@@ -205,6 +220,7 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF0F4F8), // Match learning modules background
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
@@ -264,12 +280,12 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 8,
-                    offset: Offset(0, 2),
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                    blurRadius: 15,
+                    offset: Offset(0, 5),
                   ),
                 ],
               ),
@@ -421,12 +437,12 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: Offset(0, 4),
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+            blurRadius: 15,
+            offset: Offset(0, 5),
           ),
         ],
       ),
@@ -442,11 +458,11 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
                 height: 200,
                 margin: EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(24),
                   color: Colors.grey[200],
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(24),
                   child: Image.asset(
                     widget.module.imageAsset!,
                     fit: BoxFit.cover,
@@ -490,9 +506,7 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
                     child: ElevatedButton.icon(
                       onPressed: _isSpeaking
                           ? _stopSpeaking
-                          : () => _speakContent(
-                              widget.module.contentSections[index],
-                            ),
+                          : () => _playContentSection(index),
                       icon: Icon(_isSpeaking ? Icons.stop : Icons.volume_up),
                       label: Text(_isSpeaking ? 'Tumitigil' : 'Marinig'),
                       style: ElevatedButton.styleFrom(
@@ -524,12 +538,12 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
               decoration: BoxDecoration(
                 color: Colors.green[50],
                 border: Border(left: BorderSide(color: Colors.green, width: 4)),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.green.withValues(alpha: 0.1),
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
+                    color: Colors.green.withOpacity(0.1),
+                    blurRadius: 15,
+                    offset: Offset(0, 5),
                   ),
                 ],
               ),
@@ -568,9 +582,10 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
   void dispose() {
     _pageController.dispose();
     _stopSpeaking();
+    _audioPlaybackSubscription.cancel();
     _videoController?.pause();
     _videoController?.dispose();
-    _ttsService.dispose();
+    _audioService.dispose();
     super.dispose();
   }
 }

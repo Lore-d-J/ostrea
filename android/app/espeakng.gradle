@@ -1,0 +1,44 @@
+// espeak-ng Build Configuration
+// This script handles downloading and setting up espeak-ng binaries for Android
+
+import java.net.URL
+import java.nio.file.Files
+import java.nio.file.Paths
+
+ext {
+    espeakNgVersion = "1.51"
+    espeakNgDir = file("${project.projectDir}/src/main/jniLibs")
+}
+
+// Task to download espeak-ng binaries
+task downloadEspeakNg {
+    description = "Download espeak-ng ARM binaries for Android"
+    doLast {
+        espeakNgDir.mkdirs()
+        
+        // Define architectures and their download URLs
+        def architectures = [
+            'arm64-v8a': 'https://github.com/espeak-ng/espeak-ng/releases/download/1.51-data/espeak-ng-arm64-v8a.zip',
+            'armeabi-v7a': 'https://github.com/espeak-ng/espeak-ng/releases/download/1.51-data/espeak-ng-armeabi-v7a.zip'
+        ]
+        
+        println("Checking espeak-ng binaries...")
+        
+        architectures.each { arch, url ->
+            def archDir = new File(espeakNgDir, arch)
+            def binaryPath = new File(archDir, "libespeak-ng.so")
+            
+            if (!binaryPath.exists()) {
+                println("espeak-ng binary for $arch not found. Please download manually:")
+                println("  1. Go to: $url")
+                println("  2. Extract and place libespeak-ng.so in: $archDir/")
+                println("  3. Then run: ./gradlew build")
+            } else {
+                println("✓ espeak-ng found for $arch")
+            }
+        }
+    }
+}
+
+// Hook this into the build process
+preBuild.dependsOn downloadEspeakNg
