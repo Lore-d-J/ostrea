@@ -3,7 +3,8 @@ import 'package:ostrea/theme/app_theme.dart';
 import 'package:ostrea/screens/animated_splash_screen.dart';
 import 'package:ostrea/localization/app_strings.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const OstreaApp());
 }
 

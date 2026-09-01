@@ -8,24 +8,24 @@ import 'package:ostrea/widgets/result_card.dart';
 import 'package:ostrea/widgets/recommendation_card.dart';
 import 'package:ostrea/localization/app_strings.dart';
 
-class DiseaseIdentificationScreen extends StatefulWidget {
-  const DiseaseIdentificationScreen({super.key});
+class DiscolorationIdentificationScreen extends StatefulWidget {
+  const DiscolorationIdentificationScreen({super.key});
 
   @override
-  State<DiseaseIdentificationScreen> createState() =>
-      _DiseaseIdentificationScreenState();
+  State<DiscolorationIdentificationScreen> createState() =>
+      _DiscolorationIdentificationScreenState();
 }
 
-class _DiseaseIdentificationScreenState
-    extends State<DiseaseIdentificationScreen> {
+class _DiscolorationIdentificationScreenState
+    extends State<DiscolorationIdentificationScreen> {
   final ImageClassifierService _classifier = ImageClassifierService();
   final ImagePicker _imagePicker = ImagePicker();
 
   File? _selectedImage;
   PredictionResult? _prediction;
-  Recommendation? _recommendation;
   bool _isProcessing = false;
   String? _errorMessage;
+  bool _showAnalyzeButton = false;
 
   @override
   void initState() {
@@ -40,14 +40,13 @@ class _DiseaseIdentificationScreenState
         setState(() {
           _selectedImage = File(pickedFile.path);
           _prediction = null;
-          _recommendation = null;
           _errorMessage = null;
+          _showAnalyzeButton = true;
         });
-        _identifyDisease();
       }
     } catch (e) {
       setState(() {
-        _errorMessage = '${AppStrings.failedToPickImage}: $e';
+        _errorMessage = 'Hindi makapili ng larawan: $e';
       });
     }
   }
@@ -63,16 +62,15 @@ class _DiseaseIdentificationScreenState
     try {
       final imageBytes = await _selectedImage!.readAsBytes();
       final prediction = await _classifier.classifyImage(imageBytes);
-      final recommendation = getRecommendation(prediction.label);
 
       setState(() {
         _prediction = prediction;
-        _recommendation = recommendation;
         _isProcessing = false;
+        _showAnalyzeButton = false;
       });
     } catch (e) {
       setState(() {
-        _errorMessage = '${AppStrings.identificationFailed}: $e';
+        _errorMessage = 'Hindi ma-suri ang larawan: $e';
         _isProcessing = false;
       });
     }
@@ -110,7 +108,7 @@ class _DiseaseIdentificationScreenState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Oyster Discoloration Assessment',
+                          'Pagsusuri sa Kulay ng Talaba',
                           style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -119,10 +117,10 @@ class _DiseaseIdentificationScreenState
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Upload or capture an image of an oyster to assess discoloration and receive a recommendation.',
+                          'Mag-upload o kumuha ng larawan ng talaba para makita kung may pagbabago sa kulay at makakuha ng payo.',
                           style: TextStyle(
                             fontSize: 16,
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                           ),
                         ),
                       ],
@@ -131,13 +129,12 @@ class _DiseaseIdentificationScreenState
 
                   const SizedBox(height: 20),
 
-                  // Image picker buttons
                   Row(
                     children: [
                       Expanded(
                         child: _buildImagePickerButton(
                           icon: Icons.camera_alt,
-                          label: 'Camera',
+                          label: 'Kumuha ng larawan',
                           onPressed: () => _pickImage(ImageSource.camera),
                           color: oceanDeep,
                         ),
@@ -146,12 +143,75 @@ class _DiseaseIdentificationScreenState
                       Expanded(
                         child: _buildImagePickerButton(
                           icon: Icons.photo_library,
-                          label: 'Gallery',
+                          label: 'Mga larawan',
                           onPressed: () => _pickImage(ImageSource.gallery),
                           color: oceanLight,
                         ),
                       ),
                     ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: Colors.grey.shade300),
+                      boxShadow: [
+                        BoxShadow(
+                          color: oceanDeep.withValues(alpha: 0.06),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.tips_and_updates_rounded, color: oceanDeep),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Halimbawa ng larawan na kunin',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: oceanDeep,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          height: 150,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(14),
+                            child: Image.asset(
+                              'assets/images/oyster-meat.png',
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Kunin ang larawan ng laman ng talaba. Ilagay lang ang isa sa isang shot at tiyaking malinaw ang kulay at bahagi ng talaba.',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[700],
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
 
                   const SizedBox(height: 20),
@@ -165,7 +225,7 @@ class _DiseaseIdentificationScreenState
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: oceanDeep.withOpacity(0.1),
+                            color: oceanDeep.withValues(alpha: 0.1),
                             blurRadius: 15,
                             offset: const Offset(0, 5),
                           ),
@@ -194,7 +254,7 @@ class _DiseaseIdentificationScreenState
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'No image selected',
+                            'Walang napiling larawan',
                             style: TextStyle(
                               fontSize: 18,
                               color: Colors.grey[600],
@@ -203,7 +263,7 @@ class _DiseaseIdentificationScreenState
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Choose an image to assess oyster discoloration',
+                            'Pumili ng larawan para suriin ang kulay ng talaba',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[500],
@@ -215,7 +275,46 @@ class _DiseaseIdentificationScreenState
                     ),
                   ],
 
-                  // Processing indicator
+                  if (_selectedImage != null && _showAnalyzeButton) ...[
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _selectedImage = null;
+                                _prediction = null;
+                                _errorMessage = null;
+                                _showAnalyzeButton = false;
+                              });
+                            },
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Kumuha ulit'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              side: BorderSide(color: oceanDeep),
+                              foregroundColor: oceanDeep,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: _selectedImage == null ? null : _identifyDisease,
+                            icon: const Icon(Icons.analytics),
+                            label: const Text('Suriin'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: oceanDeep,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+
                   if (_isProcessing) ...[
                     const SizedBox(height: 20),
                     Container(
@@ -225,7 +324,7 @@ class _DiseaseIdentificationScreenState
                         borderRadius: BorderRadius.circular(15),
                         boxShadow: [
                           BoxShadow(
-                            color: oceanDeep.withOpacity(0.05),
+                            color: oceanDeep.withValues(alpha: 0.05),
                             blurRadius: 10,
                             offset: const Offset(0, 3),
                           ),
@@ -236,7 +335,7 @@ class _DiseaseIdentificationScreenState
                           CircularProgressIndicator(color: oceanDeep),
                           const SizedBox(height: 12),
                           Text(
-                            '${AppStrings.loading}..',
+                            'Naglo-load...',
                             style: TextStyle(
                               color: oceanDeep,
                               fontWeight: FontWeight.w500,
@@ -248,39 +347,41 @@ class _DiseaseIdentificationScreenState
                   ],
 
                   // Results
-                  if (_prediction != null && _recommendation != null) ...[
+                  if (_prediction != null) ...[
                     const SizedBox(height: 20),
                     ResultCard(
                       prediction: _prediction!,
-                      recommendation: _recommendation!,
+                      recommendation: Recommendation(
+                        warningLevel: _prediction!.label,
+                        message: _prediction!.message.isNotEmpty
+                            ? _prediction!.message
+                            : 'Handa na ang pagsusuri.',
+                        badgeColor: _prediction!.label.toLowerCase().contains('normal')
+                            ? const Color(0xFF2E7D32)
+                            : _prediction!.label.toLowerCase().contains('yellow')
+                                ? const Color(0xFFF9A825)
+                                : _prediction!.label.toLowerCase().contains('green')
+                                    ? const Color(0xFF1976D2)
+                                    : const Color(0xFF546E7A),
+                      ),
                     ),
                     const SizedBox(height: 18),
-                    RecommendationCard(recommendation: _recommendation!),
-                    const SizedBox(height: 24),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(
-                            Icons.info_outline,
-                            color: Colors.blueAccent,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              'Results are AI-assisted recommendations only.',
-                              style: TextStyle(color: Colors.grey[800]),
-                            ),
-                          ),
-                        ],
+                    RecommendationCard(
+                      recommendation: Recommendation(
+                        warningLevel: _prediction!.label,
+                        message: _prediction!.description.isNotEmpty
+                            ? _prediction!.description
+                            : 'Handa na ang pagsusuri.',
+                        badgeColor: _prediction!.label.toLowerCase().contains('normal')
+                            ? const Color(0xFF2E7D32)
+                            : _prediction!.label.toLowerCase().contains('yellow')
+                                ? const Color(0xFFF9A825)
+                                : _prediction!.label.toLowerCase().contains('green')
+                                    ? const Color(0xFF1976D2)
+                                    : const Color(0xFF546E7A),
                       ),
                     ),
+                    const SizedBox(height: 24),
                   ],
 
                   // Error message
@@ -335,7 +436,7 @@ class _DiseaseIdentificationScreenState
         centerTitle: false,
         titlePadding: const EdgeInsetsDirectional.only(start: 20, bottom: 16),
         title: Text(
-          'Oyster Discoloration Assessment',
+          'Pagsusuri sa Kulay ng Talaba',
           style: const TextStyle(
             fontWeight: FontWeight.w900,
             fontSize: 18,
@@ -358,7 +459,7 @@ class _DiseaseIdentificationScreenState
                 child: Icon(
                   Icons.water,
                   size: 200,
-                  color: Colors.white.withOpacity(0.05),
+                  color: Colors.white.withValues(alpha: 0.05),
                 ),
               ),
             ],
@@ -381,7 +482,7 @@ class _DiseaseIdentificationScreenState
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -399,7 +500,7 @@ class _DiseaseIdentificationScreenState
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
+                    color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(icon, color: color, size: 24),

@@ -1,12 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
 import 'package:ostrea/models/learning_module.dart';
 import 'package:ostrea/services/local_storage_service.dart';
 import 'package:ostrea/services/audio_playback_service.dart';
 import 'package:ostrea/localization/app_strings.dart';
 import 'package:ostrea/screens/dictionary_screen.dart';
+import 'package:ostrea/widgets/audio_action_button.dart';
 
 class LearningModuleScreen extends StatefulWidget {
   final LearningModule module;
@@ -23,7 +23,6 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
   late PageController _pageController;
   late AudioPlaybackService _audioService;
   late StreamSubscription<bool> _audioPlaybackSubscription;
-  VideoPlayerController? _videoController;
 
   @override
   void initState() {
@@ -36,37 +35,24 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
         _isSpeaking = isPlaying;
       });
     });
-    _initializeVideo();
-  }
-
-  void _initializeVideo() {
-    if (widget.module.videoAsset != null) {
-      _videoController = VideoPlayerController.asset(widget.module.videoAsset!)
-        ..initialize().then((_) {
-          setState(() {});
-        })
-        ..addListener(() {
-          setState(() {});
-        });
-    }
   }
 
   void _playContentSection(int sectionIndex) async {
     setState(() {
       _isSpeaking = true;
     });
-
     final success = await _audioService.playModuleSection(widget.module.id, sectionIndex);
     if (!success && mounted) {
       setState(() {
         _isSpeaking = false;
       });
-      final moduleNum = widget.module.id.replaceAll(RegExp(r'\D'), '').replaceFirst(RegExp(r'^0+'), '') ?? '1';
+      final moduleNum = widget.module.id.replaceAll(RegExp(r'\D'), '').replaceFirst(RegExp(r'^0+'), '');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Place MP3: assets/audio/modules/${widget.module.id}/ttsModule${moduleNum}Section${sectionIndex + 1}.mp3',
+            'Audio file not found: assets/audio/modules/${widget.module.id}/ttsModule${moduleNum}Section${sectionIndex + 1}.mp3',
           ),
+          duration: Duration(seconds: 4),
         ),
       );
     }
@@ -88,133 +74,6 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
         ),
       );
     }
-  }
-
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return '$minutes:$seconds';
-  }
-
-  Widget _buildVideoPlayer() {
-    if (widget.module.videoAsset == null || _videoController == null) {
-      return SizedBox.shrink();
-    }
-
-    return Container(
-      width: double.infinity,
-      height: 280,
-      margin: EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        color: Colors.black,
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Column(
-          children: [
-            Expanded(
-              child: Stack(
-                children: [
-                  VideoPlayer(_videoController!),
-                  Positioned.fill(
-                    child: Center(
-                      child: FloatingActionButton(
-                        backgroundColor: Colors.white70,
-                        onPressed: () {
-                          setState(() {
-                            if (_videoController!.value.isPlaying) {
-                              _videoController!.pause();
-                            } else {
-                              _videoController!.play();
-                            }
-                          });
-                        },
-                        child: Icon(
-                          _videoController!.value.isPlaying
-                              ? Icons.pause
-                              : Icons.play_arrow,
-                          color: Colors.green[700],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ), 
-            Container(
-              height: 50,
-              color: Colors.black87,
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      _videoController!.value.isPlaying
-                          ? Icons.pause
-                          : Icons.play_arrow,
-                      color: Colors.white,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        if (_videoController!.value.isPlaying) {
-                          _videoController!.pause();
-                        } else {
-                          _videoController!.play();
-                        }
-                      });
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.replay_10, color: Colors.white),
-                    onPressed: () {
-                      final current = _videoController!.value.position;
-                      final newPosition = current - Duration(seconds: 10);
-                      _videoController!.seekTo(
-                        newPosition > Duration.zero
-                            ? newPosition
-                            : Duration.zero,
-                      );
-                    },
-                  ),
-                  Expanded(
-                    child: Slider(
-                      value: _videoController!.value.position.inSeconds
-                          .toDouble(),
-                      max: _videoController!.value.duration.inSeconds
-                          .toDouble(),
-                      onChanged: (value) {
-                        _videoController!.seekTo(
-                          Duration(seconds: value.toInt()),
-                        );
-                      },
-                      activeColor: Colors.green,
-                      inactiveColor: Colors.white30,
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.forward_10, color: Colors.white),
-                    onPressed: () {
-                      final current = _videoController!.value.position;
-                      final duration = _videoController!.value.duration;
-                      final newPosition = current + Duration(seconds: 10);
-                      _videoController!.seekTo(
-                        newPosition < duration ? newPosition : duration,
-                      );
-                    },
-                  ),
-                  Text(
-                    '${_formatDuration(_videoController!.value.position)} / ${_formatDuration(_videoController!.value.duration)}',
-                    style: TextStyle(color: Colors.white, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   @override
@@ -240,7 +99,6 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
           icon: Icon(Icons.arrow_back),
           onPressed: () {
             _stopSpeaking();
-            _videoController?.pause();
             Navigator.pop(context);
           },
         ),
@@ -451,7 +309,6 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (index == 0) _buildVideoPlayer(),
             if (widget.module.imageAsset != null)
               Container(
                 width: double.infinity,
@@ -503,23 +360,15 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
               child: Row(
                 children: [
                   Expanded(
-                    child: ElevatedButton.icon(
+                    child: AudioActionButton(
+                      isPlaying: _isSpeaking,
                       onPressed: _isSpeaking
                           ? _stopSpeaking
                           : () => _playContentSection(index),
-                      icon: Icon(_isSpeaking ? Icons.stop : Icons.volume_up),
-                      label: Text(_isSpeaking ? 'Tumitigil' : 'Marinig'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _isSpeaking
-                            ? Colors.red[400]
-                            : Theme.of(context).colorScheme.secondary,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        elevation: 2,
-                      ),
+                      playingLabel: 'Tumitigil',
+                      stoppedLabel: 'Marinig',
+                      activeColor: Colors.red,
+                      inactiveColor: Colors.green,
                     ),
                   ),
                 ],
@@ -583,8 +432,6 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
     _pageController.dispose();
     _stopSpeaking();
     _audioPlaybackSubscription.cancel();
-    _videoController?.pause();
-    _videoController?.dispose();
     _audioService.dispose();
     super.dispose();
   }

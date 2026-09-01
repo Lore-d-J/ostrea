@@ -256,7 +256,6 @@ dependencies:
 ## Future Enhancements
 
 - [ ] Voice narration for learning modules
-- [ ] Video tutorials
 - [ ] Water quality monitoring tools
 - [ ] Weather integration
 - [ ] Multi-language support

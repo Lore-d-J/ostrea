@@ -34,19 +34,11 @@ Recommendation getRecommendation(String label) {
             'Potential contamination or unhealthy condition detected. Separate from healthy oysters.',
         badgeColor: Color(0xFFF57F17),
       );
-    case 'Black Spots':
+    case 'Nothing':
       return const Recommendation(
-        warningLevel: 'Warning',
-        message:
-            'Possible shell damage or disease detected. Further inspection is recommended.',
-        badgeColor: Color(0xFFD32F2F),
-      );
-    case 'Damaged/Open Shell':
-      return const Recommendation(
-        warningLevel: 'Unsafe',
-        message:
-            'The oyster may already be dead or unsafe. Remove immediately.',
-        badgeColor: Color(0xFFB71C1C),
+        warningLevel: 'N/A',
+        message: 'No oyster detected in the image. Please ensure the oyster is clearly visible in the frame.',
+        badgeColor: Color(0xFF9E9E9E),
       );
     default:
       return const Recommendation(

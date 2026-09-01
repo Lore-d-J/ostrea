@@ -1,6 +1,0 @@
-0 Healthy Oyster
-1 Diseased Oyster (Perkinsus)
-2 Diseased Oyster (Bonamia)
-3 Diseased Oyster (MSX)
-4 Barnacles
-5 Unknown

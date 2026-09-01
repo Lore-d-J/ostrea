@@ -42,9 +42,9 @@ dependencies:
   image_picker: ^1.0.4
   image: ^4.1.1
   
-  # Video playback
-  video_player: ^2.8.1
-  
+  # ML Inference for oyster classification
+  tflite_flutter: ^0.10.4
+
   # Audio playback for custom MP3 narration
   audioplayers: ^6.6.0
   
@@ -92,10 +92,21 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/models/
-    - assets/model/
-    - assets/videos/
     - assets/images/
+    - assets/images/moduleIcon/
     - assets/audio/
+    - assets/audio/modules/module_001/
+    - assets/audio/modules/module_002/
+    - assets/audio/modules/module_003/
+    - assets/audio/modules/module_004/
+    - assets/audio/modules/module_005/
+    - assets/audio/modules/module_006/
+    - assets/audio/modules/module_007/
+    - assets/audio/modules/module_008/
+    - assets/audio/modules/module_009/
+    - assets/audio/modules/module_010/
+    - assets/audio/modules/module_011/
+    - assets/audio/guides/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

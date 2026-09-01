@@ -1,12 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
 import 'package:ostrea/models/learning_module.dart';
 import 'package:ostrea/services/audio_playback_service.dart';
 import 'package:ostrea/services/local_data_service.dart';
 import 'package:ostrea/localization/app_strings.dart';
 import 'package:ostrea/screens/dictionary_screen.dart';
+import 'package:ostrea/widgets/audio_action_button.dart';
 
 class TroubleshootingScreen extends StatefulWidget {
   const TroubleshootingScreen({super.key});
@@ -22,7 +22,6 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
   String? _selectedSeverity;
   String _searchQuery = "";
   
-  final Map<String, VideoPlayerController?> _videoControllers = {};
   final Map<String, bool> _isSpeakingMap = {};
   late AudioPlaybackService _audioService;
   late StreamSubscription<bool> _audioPlaybackSubscription;
@@ -97,16 +96,6 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
           ),
         ),
       );
-    }
-  }
-
-  void _initializeVideoController(String guideId, String videoAsset) {
-    if (_videoControllers[guideId] == null && videoAsset.isNotEmpty) {
-      final controller = VideoPlayerController.asset(videoAsset);
-      _videoControllers[guideId] = controller;
-      controller.initialize().then((_) {
-        if (mounted) setState(() {});
-      });
     }
   }
 
@@ -306,11 +295,6 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
       child: Theme(
         data: theme.copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          onExpansionChanged: (expanded) {
-            if (expanded && guide.videoAsset != null) {
-              _initializeVideoController(guide.id, guide.videoAsset!);
-            }
-          },
           leading: CircleAvatar(
             backgroundColor: _getSeverityColor(guide.severity).withOpacity(0.1),
             child: Icon(Icons.warning_rounded, color: _getSeverityColor(guide.severity)),
@@ -329,9 +313,6 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (guide.videoAsset != null && guide.videoAsset!.isNotEmpty)
-                    _buildVideoSection(guide),
-                  
                   const Text('Ano ang problema?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                   const SizedBox(height: 4),
                   Text(guide.problem, style: TextStyle(color: Colors.grey[700], height: 1.4)),
@@ -340,17 +321,15 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: OutlinedButton.icon(
+                        child: AudioActionButton(
+                          isPlaying: _isSpeakingMap[guide.id] ?? false,
                           onPressed: (_isSpeakingMap[guide.id] ?? false)
                               ? () => _audioService.stop().then((_) => setState(() => _isSpeakingMap[guide.id] = false))
                               : () => _playGuideAudio(guide.id),
-                          icon: Icon((_isSpeakingMap[guide.id] ?? false) ? Icons.stop : Icons.volume_up, size: 20),
-                          label: Text((_isSpeakingMap[guide.id] ?? false) ? 'Itigil' : 'Pakinggan'),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: theme.colorScheme.secondary),
-                            foregroundColor: theme.colorScheme.secondary,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
+                          playingLabel: 'Itigil',
+                          stoppedLabel: 'Pakinggan',
+                          activeColor: Colors.red,
+                          inactiveColor: Colors.green,
                         ),
                       ),
                     ],
@@ -391,32 +370,6 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
     );
   }
 
-  Widget _buildVideoSection(TroubleshootingGuide guide) {
-    final controller = _videoControllers[guide.id];
-    
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8)],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: controller == null || !controller.value.isInitialized
-          ? Container(height: 180, color: Colors.grey[200], child: const Center(child: CircularProgressIndicator()))
-          : AspectRatio(
-              aspectRatio: controller.value.aspectRatio,
-              child: Stack(
-                alignment: Alignment.bottomCenter,
-                children: [
-                  VideoPlayer(controller),
-                  _VideoControls(controller: controller),
-                  VideoProgressIndicator(controller, allowScrubbing: true, colors: const VideoProgressColors(playedColor: Colors.green)),
-                ],
-              ),
-            ),
-    );
-  }
-
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -432,31 +385,8 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
 
   @override
   void dispose() {
-    for (var c in _videoControllers.values) { c?.dispose(); }
     _audioPlaybackSubscription.cancel();
     _audioService.dispose();
     super.dispose();
-  }
-}
-
-class _VideoControls extends StatelessWidget {
-  final VideoPlayerController controller;
-  const _VideoControls({required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => controller.value.isPlaying ? controller.pause() : controller.play(),
-      child: Container(
-        color: Colors.transparent,
-        child: Center(
-          child: Icon(
-            controller.value.isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
-            color: Colors.white.withOpacity(0.7),
-            size: 60,
-          ),
-        ),
-      ),
-    );
   }
 }

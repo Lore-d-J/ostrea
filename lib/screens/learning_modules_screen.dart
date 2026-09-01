@@ -5,6 +5,7 @@ import 'package:ostrea/screens/learning_module_screen.dart';
 import 'package:ostrea/services/local_storage_service.dart';
 import 'package:ostrea/services/local_data_service.dart';
 import 'package:ostrea/screens/dictionary_screen.dart';
+import 'package:ostrea/localization/app_strings.dart';
 
 class LearningModulesScreen extends StatefulWidget {
   const LearningModulesScreen({super.key});
@@ -17,11 +18,18 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
   List<LearningModule> modules = [];
   List<String> _completedModules = [];
   bool _isLoading = true;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _initData();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.toLowerCase();
+      });
+    });
   }
 
   void _initData() async {
@@ -41,6 +49,12 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
     });
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   void _navigateToModule(LearningModule module) {
     HapticFeedback.lightImpact(); // Subtle vibration for Android
     Navigator.push(
@@ -56,6 +70,11 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
     // Custom aquatic colors
     final Color oceanDeep = const Color(0xFF006D77);
     final Color oceanLight = const Color(0xFF83C5BE);
+
+    final filteredModules = modules.where((module) {
+      return module.title.toLowerCase().contains(_searchQuery) ||
+          module.description.toLowerCase().contains(_searchQuery);
+    }).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4F8), 
@@ -79,13 +98,13 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
                               opacity: value,
                               child: Transform.translate(
                                 offset: Offset(0, 30 * (1 - value)),
-                                child: _buildModuleCard(modules[index], oceanDeep),
+                                child: _buildModuleCard(filteredModules[index], oceanDeep),
                               ),
                             );
                           },
                         );
                       },
-                      childCount: modules.length,
+                      childCount: filteredModules.length,
                     ),
                   ),
                 ),
@@ -96,15 +115,15 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
 
   Widget _buildSliverAppBar(BuildContext context, Color primaryColor) {
     return SliverAppBar(
-      expandedHeight: 48.0,
-      toolbarHeight: 48.0,
+      expandedHeight: 110.0,
+      toolbarHeight: 60.0,
       pinned: true,
       elevation: 0,
       stretch: true,
       backgroundColor: primaryColor,
       flexibleSpace: FlexibleSpaceBar(
         centerTitle: false,
-        titlePadding: const EdgeInsetsDirectional.only(start: 20, bottom: 16),
+        titlePadding: const EdgeInsetsDirectional.only(start: 20, bottom: 65),
         title: const Text(
           'Mga Modulo',
           style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.white),
@@ -125,6 +144,60 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
                 child: Icon(Icons.water, size: 200, color: Colors.white.withOpacity(0.05)),
               ),
             ],
+          ),
+        ),
+      ),
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(60),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: Container(
+            height: 48,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 18,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: TextField(
+              controller: _searchController,
+              style: const TextStyle(fontSize: 15, color: Color(0xFF2D3142)),
+              decoration: InputDecoration(
+                hintText: AppStrings.searchModules,
+                hintStyle: TextStyle(color: Colors.grey[400], fontSize: 15),
+                prefixIcon: Padding(
+                  padding: const EdgeInsets.only(left: 16, right: 8),
+                  child: Icon(Icons.search, color: primaryColor, size: 22),
+                ),
+                prefixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: () => _searchController.clear(),
+                          child: const Icon(Icons.close, size: 20, color: Colors.grey),
+                        ),
+                      )
+                    : null,
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white.withOpacity(0.0)),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: primaryColor.withOpacity(0.2)),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+              ),
+            ),
           ),
         ),
       ),
@@ -173,19 +246,45 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
                 Stack(
                   alignment: Alignment.center,
                   children: [
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: isCompleted ? Colors.green.withOpacity(0.1) : primaryColor.withOpacity(0.1),
-                        shape: BoxShape.circle,
+                    SizedBox(
+                      width: 100,
+                      height: 100,
+                      child: Image.asset(
+                        'assets/images/moduleIcon/${module.id}Icon.png',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(
+                            Icons.waves,
+                            color: primaryColor,
+                            size: 50,
+                          );
+                        },
                       ),
                     ),
-                    Icon(
-                      isCompleted ? Icons.verified : Icons.waves,
-                      color: isCompleted ? Colors.green : primaryColor,
-                      size: 30,
-                    ),
+                    if (isCompleted)
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.check,
+                            color: Colors.white,
+                            size: 14,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
                 const SizedBox(width: 20),

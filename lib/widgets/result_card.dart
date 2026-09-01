@@ -21,7 +21,7 @@ class ResultCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 14,
             offset: const Offset(0, 8),
           ),
@@ -34,7 +34,7 @@ class ResultCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Prediction',
+                  'Klase ng Resulta',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -46,7 +46,7 @@ class ResultCard extends StatelessWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: recommendation.badgeColor.withOpacity(0.15),
+                  color: recommendation.badgeColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -59,25 +59,30 @@ class ResultCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
           Text(
             prediction.label,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Text(
-            'Confidence: ${prediction.confidencePercentage}',
+            'Kumpiyansa: ${prediction.confidencePercentage}',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Colors.grey[700],
                 ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Paglalarawan: ${prediction.description.isNotEmpty ? prediction.description : recommendation.message}',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5),
           ),
           const SizedBox(height: 16),
           LinearProgressIndicator(
             value: prediction.confidence,
             color: recommendation.badgeColor,
-            backgroundColor: recommendation.badgeColor.withOpacity(0.15),
+            backgroundColor: recommendation.badgeColor.withValues(alpha: 0.15),
             minHeight: 8,
           ),
         ],

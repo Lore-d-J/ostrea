@@ -1,0 +1,4 @@
+0 Unidentified
+1 Normal
+2 Yellowish Meat
+3 Greenish Meat
