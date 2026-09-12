@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:ostrea/theme/app_theme.dart';
 import 'package:ostrea/screens/animated_splash_screen.dart';
 import 'package:ostrea/localization/app_strings.dart';
+import 'package:ostrea/services/local_data_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await LocalDataService().initializeContent();
   runApp(const OstreaApp());
 }
 

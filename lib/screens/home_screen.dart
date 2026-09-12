@@ -3,6 +3,7 @@ import 'package:ostrea/screens/learning_modules_screen.dart';
 import 'package:ostrea/screens/troubleshooting_screen.dart';
 import 'package:ostrea/screens/discoloration_identification_screen.dart';
 import 'package:ostrea/localization/app_strings_helper.dart';
+import 'package:ostrea/services/audio_playback_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,6 +15,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   late List<Widget> _screens;
+  final AudioPlaybackService _audioService = AudioPlaybackService();
 
   @override
   void initState() {
@@ -58,6 +60,9 @@ class _HomeScreenState extends State<HomeScreen> {
         child: NavigationBar(
           selectedIndex: _selectedIndex,
           onDestinationSelected: (int index) {
+            if (index != _selectedIndex) {
+              _audioService.stop();
+            }
             setState(() {
               _selectedIndex = index;
             });
@@ -66,20 +71,41 @@ class _HomeScreenState extends State<HomeScreen> {
           elevation: 0,
           destinations: [
             NavigationDestination(
-              icon: Icon(Icons.school, color: _selectedIndex == 0 ? Theme.of(context).colorScheme.primary : Colors.grey),
+              icon: Icon(
+                Icons.school,
+                color: _selectedIndex == 0
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.grey,
+              ),
               label: AppStringsHelper.navLearn,
             ),
             NavigationDestination(
-              icon: Icon(Icons.build, color: _selectedIndex == 1 ? Theme.of(context).colorScheme.primary : Colors.grey),
+              icon: Icon(
+                Icons.build,
+                color: _selectedIndex == 1
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.grey,
+              ),
               label: AppStringsHelper.navTroubleshoot,
             ),
             NavigationDestination(
-              icon: Icon(Icons.image, color: _selectedIndex == 2 ? Theme.of(context).colorScheme.primary : Colors.grey),
+              icon: Icon(
+                Icons.image,
+                color: _selectedIndex == 2
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.grey,
+              ),
               label: AppStringsHelper.navIdentify,
             ),
           ],
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _audioService.stop();
+    super.dispose();
   }
 }

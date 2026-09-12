@@ -5,10 +5,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ostrea/models/learning_module.dart';
 
 class LocalDataService {
+  // Bump this whenever bundled content changes in a way that requires replacing
+  // stale values stored from an older APK install.
+  static const int currentContentVersion = 6;
+
+  static const String _contentVersionKey = 'built_in_content_version';
   static const String _learningModulesKey = 'learning_modules';
   static const String _troubleshootingGuidesKey = 'troubleshooting_guides';
   static const String _mapLocationsKey = 'map_locations';
   static const String _dictionaryKey = 'dictionary_entries';
+
+  static const List<String> _builtInContentKeys = [
+    _learningModulesKey,
+    _troubleshootingGuidesKey,
+    _mapLocationsKey,
+    _dictionaryKey,
+  ];
 
   static final LocalDataService _instance = LocalDataService._internal();
 
@@ -16,7 +28,98 @@ class LocalDataService {
 
   LocalDataService._internal();
 
+  /// Ensures bundled content is refreshed when the app is updated and the saved
+  /// content version is older than the current bundled version.
+  ///
+  /// This intentionally only refreshes built-in/static content and preserves
+  /// user-specific keys such as progress and completed module data.
+  Future<void> initializeContent() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedVersion = prefs.getInt(_contentVersionKey) ?? 0;
+    final hasMissingBuiltInContent = _builtInContentKeys.any(
+      (key) => prefs.getString(key) == null,
+    );
+
+    if (savedVersion < currentContentVersion || hasMissingBuiltInContent) {
+      await _refreshBuiltInContent();
+    }
+
+    await prefs.setInt(_contentVersionKey, currentContentVersion);
+  }
+
+  Future<void> _refreshBuiltInContent() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final modules = _getDefaultLearningModules();
+    final guides = _getDefaultTroubleshootingGuides();
+    final locations = _getDefaultMapLocations();
+    final entries = _getDefaultDictionaryEntries();
+
+    await Future.wait([
+      prefs.setString(
+        _learningModulesKey,
+        jsonEncode(
+          modules
+              .map(
+                (m) => {
+                  'id': m.id,
+                  'title': m.title,
+                  'description': m.description,
+                  'content_sections': m.contentSections,
+                  'image_asset': m.imageAsset,
+                  'video_asset': m.videoAsset,
+                  'has_voice_narration': m.hasVoiceNarration,
+                  'source_url': m.sourceUrl,
+                  'source_title': m.sourceTitle,
+                },
+              )
+              .toList(),
+        ),
+      ),
+      prefs.setString(
+        _troubleshootingGuidesKey,
+        jsonEncode(
+          guides
+              .map(
+                (guide) => {
+                  'id': guide.id,
+                  'title': guide.title,
+                  'problem': guide.problem,
+                  'cause': guide.cause,
+                  'solutions': guide.solutions,
+                  'image_asset': guide.imageAsset,
+                  'video_asset': guide.videoAsset,
+                  'severity': guide.severity,
+                },
+              )
+              .toList(),
+        ),
+      ),
+      prefs.setString(_mapLocationsKey, jsonEncode(locations)),
+      prefs.setString(
+        _dictionaryKey,
+        jsonEncode(
+          entries
+              .map(
+                (entry) => {
+                  'term': entry.term,
+                  'definition': entry.definition,
+                  'category': entry.category,
+                  'related_terms': entry.relatedTerms,
+                  'image_asset': entry.imageAsset,
+                },
+              )
+              .toList(),
+        ),
+      ),
+    ]);
+
+    await prefs.setInt(_contentVersionKey, currentContentVersion);
+  }
+
   Future<List<LearningModule>> getLearningModules() async {
+    await initializeContent();
+
     final prefs = await SharedPreferences.getInstance();
     final jsonString = prefs.getString(_learningModulesKey);
 
@@ -28,15 +131,23 @@ class LocalDataService {
 
     try {
       final List<dynamic> json = jsonDecode(jsonString);
-      final modules = json.map((item) => LearningModule(
-        id: item['id']?.toString() ?? '',
-        title: item['title']?.toString() ?? 'Walang Pamagat',
-        description: item['description']?.toString() ?? '',
-        contentSections: List<String>.from(item['content_sections'] ?? const []),
-        imageAsset: item['image_asset']?.toString(),
-        videoAsset: item['video_asset']?.toString(),
-        hasVoiceNarration: item['has_voice_narration'] ?? true,
-      )).toList();
+      final modules = json
+          .map(
+            (item) => LearningModule(
+              id: item['id']?.toString() ?? '',
+              title: item['title']?.toString() ?? 'Walang Pamagat',
+              description: item['description']?.toString() ?? '',
+              contentSections: List<String>.from(
+                item['content_sections'] ?? const [],
+              ),
+              imageAsset: item['image_asset']?.toString(),
+              videoAsset: item['video_asset']?.toString(),
+              hasVoiceNarration: item['has_voice_narration'] ?? true,
+              sourceUrl: item['source_url']?.toString(),
+              sourceTitle: item['source_title']?.toString(),
+            ),
+          )
+          .toList();
 
       if (modules.isEmpty || modules.any((module) => module.id.isEmpty)) {
         final defaultModules = _getDefaultLearningModules();
@@ -54,15 +165,23 @@ class LocalDataService {
 
   Future<void> _saveLearningModules(List<LearningModule> modules) async {
     final prefs = await SharedPreferences.getInstance();
-    final json = jsonEncode(modules.map((m) => {
-      'id': m.id,
-      'title': m.title,
-      'description': m.description,
-      'content_sections': m.contentSections,
-      'image_asset': m.imageAsset,
-      'video_asset': m.videoAsset,
-      'has_voice_narration': m.hasVoiceNarration,
-    }).toList());
+    final json = jsonEncode(
+      modules
+          .map(
+            (m) => {
+              'id': m.id,
+              'title': m.title,
+              'description': m.description,
+              'content_sections': m.contentSections,
+              'image_asset': m.imageAsset,
+              'video_asset': m.videoAsset,
+              'has_voice_narration': m.hasVoiceNarration,
+              'source_url': m.sourceUrl,
+              'source_title': m.sourceTitle,
+            },
+          )
+          .toList(),
+    );
     await prefs.setString(_learningModulesKey, json);
   }
 
@@ -78,16 +197,20 @@ class LocalDataService {
 
     try {
       final List<dynamic> json = jsonDecode(jsonString);
-      return json.map((item) => TroubleshootingGuide(
-        id: item['id']?.toString() ?? '',
-        title: item['title']?.toString() ?? 'Walang Pamagat',
-        problem: item['problem']?.toString() ?? '',
-        cause: item['cause']?.toString() ?? '',
-        solutions: List<String>.from(item['solutions'] ?? const []),
-        imageAsset: item['image_asset']?.toString(),
-        videoAsset: item['video_asset']?.toString(),
-        severity: item['severity']?.toString() ?? 'medium',
-      )).toList();
+      return json
+          .map(
+            (item) => TroubleshootingGuide(
+              id: item['id']?.toString() ?? '',
+              title: item['title']?.toString() ?? 'Walang Pamagat',
+              problem: item['problem']?.toString() ?? '',
+              cause: item['cause']?.toString() ?? '',
+              solutions: List<String>.from(item['solutions'] ?? const []),
+              imageAsset: item['image_asset']?.toString(),
+              videoAsset: item['video_asset']?.toString(),
+              severity: item['severity']?.toString() ?? 'medium',
+            ),
+          )
+          .toList();
     } catch (_) {
       final defaultGuides = _getDefaultTroubleshootingGuides();
       await _saveTroubleshootingGuides(defaultGuides);
@@ -95,18 +218,26 @@ class LocalDataService {
     }
   }
 
-  Future<void> _saveTroubleshootingGuides(List<TroubleshootingGuide> guides) async {
+  Future<void> _saveTroubleshootingGuides(
+    List<TroubleshootingGuide> guides,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
-    final json = jsonEncode(guides.map((guide) => {
-      'id': guide.id,
-      'title': guide.title,
-      'problem': guide.problem,
-      'cause': guide.cause,
-      'solutions': guide.solutions,
-      'image_asset': guide.imageAsset,
-      'video_asset': guide.videoAsset,
-      'severity': guide.severity,
-    }).toList());
+    final json = jsonEncode(
+      guides
+          .map(
+            (guide) => {
+              'id': guide.id,
+              'title': guide.title,
+              'problem': guide.problem,
+              'cause': guide.cause,
+              'solutions': guide.solutions,
+              'image_asset': guide.imageAsset,
+              'video_asset': guide.videoAsset,
+              'severity': guide.severity,
+            },
+          )
+          .toList(),
+    );
     await prefs.setString(_troubleshootingGuidesKey, json);
   }
 
@@ -147,12 +278,19 @@ class LocalDataService {
 
     try {
       final List<dynamic> json = jsonDecode(jsonString);
-      return json.map((item) => DictionaryEntry(
-        term: item['term']?.toString() ?? '',
-        definition: item['definition']?.toString() ?? '',
-        category: item['category']?.toString() ?? 'general',
-        relatedTerms: List<String>.from(item['related_terms'] ?? const []),
-      )).toList();
+      return json
+          .map(
+            (item) => DictionaryEntry(
+              term: item['term']?.toString() ?? '',
+              definition: item['definition']?.toString() ?? '',
+              category: item['category']?.toString() ?? 'general',
+              relatedTerms: List<String>.from(
+                item['related_terms'] ?? const [],
+              ),
+              imageAsset: item['image_asset']?.toString(),
+            ),
+          )
+          .toList();
     } catch (_) {
       final defaultEntries = _getDefaultDictionaryEntries();
       await _saveDictionaryEntries(defaultEntries);
@@ -162,12 +300,19 @@ class LocalDataService {
 
   Future<void> _saveDictionaryEntries(List<DictionaryEntry> entries) async {
     final prefs = await SharedPreferences.getInstance();
-    final json = jsonEncode(entries.map((entry) => {
-      'term': entry.term,
-      'definition': entry.definition,
-      'category': entry.category,
-      'related_terms': entry.relatedTerms,
-    }).toList());
+    final json = jsonEncode(
+      entries
+          .map(
+            (entry) => {
+              'term': entry.term,
+              'definition': entry.definition,
+              'category': entry.category,
+              'related_terms': entry.relatedTerms,
+              'image_asset': entry.imageAsset,
+            },
+          )
+          .toList(),
+    );
     await prefs.setString(_dictionaryKey, json);
   }
 
@@ -176,13 +321,14 @@ class LocalDataService {
       LearningModule(
         id: 'module1',
         title: 'Aralin 1: Pagkilala sa Talaba',
-        description: 'Alamin ang talaba at ang kahalagahan ng tamang pag-aalaga nito.',
+        description:
+            'Alamin ang talaba at ang kahalagahan ng tamang pag-aalaga nito.',
         contentSections: [
           'Ano ang talaba?\nAng talaba ay isang uri ng kabibe na karaniwang inaalagaan sa maalat o bahagyang maalat na tubig.\n\nAng talaba ay kumukumuha ito ng pagkain sa tubig sa pamamagitan ng pagsala gamit ang hasang.',
           'Bakit mahalaga ang pag-aalaga ng talaba?\nAng pag-aalaga ng talaba ay maaaring maging pinagkukunan ng pagkain at kabuhayan para sa mga mangingisda at magsasaka sa baybayin.',
           'Tandaan:\nAng talaba ay umaasa sa natural na pagkain na nasa tubig, kaya mahalaga ang malinis at maayos na kondisyon ng lugar.',
         ],
-        imageAsset: null,
+        imageAsset: 'assets/images/modules/module1.jpg',
         videoAsset: 'assets/videos/placeholder.webm',
         hasVoiceNarration: true,
       ),
@@ -195,9 +341,12 @@ class LocalDataService {
           'Ang magandang lugar ay:\n- Malinis at walang polusyon\n- Hindi madaling bahain\n- Hindi masyadong malakas ang alon\n- May sapat na lalim\n- May natural na suplay ng maliliit na talaba o spat',
           'Tandaan:\nPiliin ang lugar na malinis, protektado, at angkop sa kondisyon ng tubig.',
         ],
-        imageAsset: null,
+        imageAsset: 'assets/images/modules/module2.jpg',
         videoAsset: 'assets/videos/placeholder.webm',
         hasVoiceNarration: true,
+        sourceUrl:
+            'https://caraga.bfar.da.gov.ph/wp-content/uploads/2022/12/Oyster.pdf',
+        sourceTitle: 'Bureau of Fisheries and Aquatic Resources (BFAR)',
       ),
       LearningModule(
         id: 'module3',
@@ -208,7 +357,7 @@ class LocalDataService {
           'Paano ito ginagawa?\n1. Maghanda ng malinis na balat ng talaba.\n2. Itali o ayusin ang mga ito bilang pamitan.\n3. Ilagay sa angkop na lugar sa tubig.\n4. Hintaying kumapit ang maliliit na talaba.\n5. Regular na tingnan ang mga pamitan.',
           'Tandaan:\nAng malinis at maayos na pamitan ay mahalaga para sa pagkakaroon ng spat.',
         ],
-        imageAsset: null,
+        imageAsset: 'assets/images/modules/module3.jpg',
         videoAsset: 'assets/videos/placeholder.webm',
         hasVoiceNarration: true,
       ),
@@ -221,9 +370,12 @@ class LocalDataService {
           'Paraan na pabitin\nAng mga pamiitan ay isinasabit sa isang istrukturang kawayan o kahoy.\n\nDapat may sapat na pagitan ang mga pamitan upang magkaroon ng maayos na daloy ng tubig.',
           'Tandaan:\nHuwag pagsiksikin ang mga pamiitan.',
         ],
-        imageAsset: null,
+        imageAsset: 'assets/images/modules/module4.jpg',
         videoAsset: 'assets/videos/placeholder.webm',
         hasVoiceNarration: true,
+        sourceUrl:
+            'https://caraga.bfar.da.gov.ph/wp-content/uploads/2022/12/Oyster.pdf',
+        sourceTitle: 'Bureau of Fisheries and Aquatic Resources (BFAR)',
       ),
       LearningModule(
         id: 'module5',
@@ -234,7 +386,7 @@ class LocalDataService {
           'Tingnan ang:\nKawayan at poste\nLubid at tali\nMga talaba\nKondisyon ng tubig\n\nKapag may sirang bahagi, ayusin o palitan agad kung kinakailangan.',
           'Tandaan:\nMas madaling ayusin ang maliit na problema bago ito lumaki.',
         ],
-        imageAsset: null,
+        imageAsset: 'assets/images/modules/module5.jpg',
         videoAsset: 'assets/videos/placeholder.webm',
         hasVoiceNarration: true,
       ),
@@ -261,7 +413,7 @@ class LocalDataService {
           'Ano ang gagawin?\nRegular na tingnan ang taas ng mga nakabitin na pamitan.\n\nKung kinakailangan, ayusin ang pagkakasabit ng mga ito.',
           'Tandaan:\nPanatilihing maayos ang posisyon ng mga nakabitin na talaba.',
         ],
-        imageAsset: null,
+        imageAsset: 'assets/images/modules/module7.jpg',
         videoAsset: 'assets/videos/placeholder.webm',
         hasVoiceNarration: true,
       ),
@@ -274,9 +426,12 @@ class LocalDataService {
           'Gaano katagal bago lumaki?\nAyon sa BFAR material, karaniwang umaabot sa 6 hanggang 10 buwan mula sa paglalagay ng binhi bago maging sapat ang gulang ng talaba.',
           'Tandaan:\nMahalaga ang magandang kondisyon ng tubig para sa paglaki ng talaba.',
         ],
-        imageAsset: null,
+        imageAsset: 'assets/images/modules/module8.jpg',
         videoAsset: 'assets/videos/placeholder.webm',
         hasVoiceNarration: true,
+        sourceUrl:
+            'https://caraga.bfar.da.gov.ph/wp-content/uploads/2022/12/Oyster.pdf',
+        sourceTitle: 'Bureau of Fisheries and Aquatic Resources (BFAR)',
       ),
       LearningModule(
         id: 'module9',
@@ -287,7 +442,7 @@ class LocalDataService {
           'Paano mag-ani?\n1. Hilahin ang mga nakabitin na linya.\n2. Paghiwalayin ang malalaki at maliliit na talaba.\n3. Ibalik ang maliliit sa lugar na patuloy silang lalago.\n4. Linisin ang mga naaning talaba.\n5. Ilagay sa angkop na lalagyan.',
           'Tandaan:\nHuwag anihin lahat kung may maliliit pang talaba na maaari pang lumaki.',
         ],
-        imageAsset: null,
+        imageAsset: 'assets/images/modules/module9.jpg',
         videoAsset: 'assets/videos/placeholder.webm',
         hasVoiceNarration: true,
       ),
@@ -300,7 +455,7 @@ class LocalDataService {
           'Ano ang gagawin?\nHuwag mag-ani.\n\nMaghintay hanggang ma-clear ang lugar at masabing ligtas na muli ang pag-aani.',
           'Tandaan:\nMay red tide, huwag mag-ani.',
         ],
-        imageAsset: null,
+        imageAsset: 'assets/images/modules/module10.jpg',
         videoAsset: 'assets/videos/placeholder.webm',
         hasVoiceNarration: true,
       ),
@@ -312,7 +467,7 @@ class LocalDataService {
           'Araw-araw na paalala\nHindi kailangang komplikado ang pag-aalaga ng talaba.\n\nAng mahalaga ay regular na:\n- Suriin ang istruktura.\n- Tingnan ang kondisyon ng mga talaba.\n- Alisin ang espongha.\n- Ayusin ang sirang bahagi.\n- Bantayan ang kondisyon ng tubig.\n- Bantayan ang lugar laban sa pagnanakaw.',
           'Tandaan:\nRegular na pagbisita at pagsuri sa talabahan ang susi sa maayos na pamamahala.',
         ],
-        imageAsset: null,
+        imageAsset: 'assets/images/modules/module11.jpg',
         videoAsset: 'assets/videos/placeholder.webm',
         hasVoiceNarration: true,
       ),
@@ -370,7 +525,8 @@ class LocalDataService {
         id: 'guide5',
         title: 'Bumaha sa lugar',
         problem: 'Suriin ang kondisyon ng tubig at dami ng putik.',
-        cause: 'Maaaring magdulot ang pagbaha ng mababang alat at matinding pag-ipon ng putik.',
+        cause:
+            'Maaaring magdulot ang pagbaha ng mababang alat at matinding pag-ipon ng putik.',
         solutions: [
           'Suriin ang kondisyon ng tubig at dami ng putik.',
           'Maaaring magdulot ang pagbaha ng mababang alat at matinding pag-ipon ng putik.',
@@ -381,7 +537,8 @@ class LocalDataService {
         id: 'guide6',
         title: 'May red tide',
         problem: 'ITIGIL ANG PAG-AANI.',
-        cause: 'Huwag kumain o magbenta ng talaba mula sa apektadong lugar hanggang ma-clear ito.',
+        cause:
+            'Huwag kumain o magbenta ng talaba mula sa apektadong lugar hanggang ma-clear ito.',
         solutions: [
           'ITIGIL ANG PAG-AANI.',
           'Huwag kumain o magbenta ng talaba mula sa apektadong lugar hanggang ma-clear ito.',
@@ -402,14 +559,16 @@ class LocalDataService {
       },
       {
         'name': 'Protektadong Lawa',
-        'description': 'Lugar na may maayos na daloy ng tubig at tamang kondisyon para sa talaba.',
+        'description':
+            'Lugar na may maayos na daloy ng tubig at tamang kondisyon para sa talaba.',
         'latitude': 13.9414,
         'longitude': 121.1543,
         'type': 'protected_area',
       },
       {
         'name': 'Barangay Nursery',
-        'description': 'Lugar kung saan hinihintay ang mga spat bago ilagay sa pangkalahatang pamitan.',
+        'description':
+            'Lugar kung saan hinihintay ang mga spat bago ilagay sa pangkalahatang pamitan.',
         'latitude': 14.1740,
         'longitude': 121.2424,
         'type': 'nursery',
@@ -420,40 +579,60 @@ class LocalDataService {
   List<DictionaryEntry> _getDefaultDictionaryEntries() {
     return [
       DictionaryEntry(
+        term: 'Talaba',
+        definition:
+            'Isang uri ng kabibe na inaalagaan sa maalat o bahagyang maalat na tubig.',
+        category: 'biology',
+        relatedTerms: ['spat', 'hasang', 'pamiitan'],
+        imageAsset: 'assets/images/dictionary/talaba.jpg',
+      ),
+      DictionaryEntry(
         term: 'Spat',
-        definition: 'Maliliit na talaba na nagsisimulang kumapit sa isang angkop na bagay sa tubig.',
+        definition:
+            'Maliliit na talaba na nagsisimulang kumapit sa isang angkop na bagay sa tubig.',
         category: 'farming',
         relatedTerms: ['binhi', 'pamitan', 'talaba'],
+        imageAsset: 'assets/images/dictionary/spat.jpg',
       ),
       DictionaryEntry(
         term: 'Pabitin',
-        definition: 'Paraan ng pag-aalaga kung saan ang mga pamitan ay isinasabit sa istruktura na nakataas sa tubig.',
+        definition:
+            'Paraan ng pag-aalaga kung saan ang mga pamitan ay isinasabit sa istruktura na nakataas sa tubig.',
         category: 'farming',
         relatedTerms: ['pamitan', 'talabahan'],
+        imageAsset: 'assets/images/dictionary/pabitin.jpg',
       ),
       DictionaryEntry(
         term: 'Red Tide',
-        definition: 'Kondisyon kung saan may sobrang dami ng algae na maaaring magdulot ng kontaminasyon at panganib sa tao.',
+        definition:
+            'Kondisyon kung saan may sobrang dami ng algae na maaaring magdulot ng kontaminasyon at panganib sa tao. Maaring maging kulay pula, kayumanggi, at berde ang tubig sa lugar na apektado ng red tide.',
         category: 'environment',
         relatedTerms: ['kaligtasan', 'pag-aani', 'water quality'],
+        imageAsset: 'assets/images/dictionary/redtide.jpg',
       ),
       DictionaryEntry(
         term: 'Hasang',
-        definition: 'Parte ng talaba na ginagamit upang salain ang tubig at kunin ang pagkain.',
+        definition:
+            'Parte ng talaba na ginagamit upang salain ang tubig at kunin ang pagkain.',
         category: 'biology',
         relatedTerms: ['pagkain', 'talaba', 'tubig'],
+        imageAsset: 'assets/images/dictionary/hasang.jpg',
       ),
       DictionaryEntry(
         term: 'Pamiitan',
-        definition: 'Lugar o estruktura sa tubig kung saan inilalagay at pinapalaki ang mga talaba. Karaniwan itong gawa sa kawayan, poste, lubid, o iba pang materyales na nagsisilbing suporta sa pagpapalaki ng talaba.',
+        definition:
+            'Lugar o estruktura sa tubig kung saan inilalagay at pinapalaki ang mga talaba. Karaniwan itong gawa sa kawayan, poste, lubid, o iba pang materyales na nagsisilbing suporta sa pagpapalaki ng talaba.',
         category: 'farming',
         relatedTerms: ['pamitan', 'talabahan', 'pabitin', 'talaba'],
+        imageAsset: 'assets/images/dictionary/pamiitan.jpg',
       ),
       DictionaryEntry(
         term: 'Espongha',
-        definition: '"Sponge" sa ingles, isa itong organismong kumakapit sa mga kagamitan at istruktura sa talabahan.',
+        definition:
+            '"Sponge" sa ingles, isa itong organismong kumakapit sa mga kagamitan at istruktura sa talabahan.',
         category: 'farming',
         relatedTerms: ['pamitan', 'talabahan', 'pabitin', 'talaba'],
+        imageAsset: 'assets/images/dictionary/espongha.jpg',
       ),
     ];
   }

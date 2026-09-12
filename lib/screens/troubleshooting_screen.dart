@@ -21,23 +21,18 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
   bool _isLoading = true;
   String? _selectedSeverity;
   String _searchQuery = "";
-  
-  final Map<String, bool> _isSpeakingMap = {};
+
   late AudioPlaybackService _audioService;
-  late StreamSubscription<bool> _audioPlaybackSubscription;
+  late StreamSubscription<String?> _audioPlaybackSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadGuides();
     _audioService = AudioPlaybackService();
-    _audioPlaybackSubscription = _audioService.playingStream.listen((isPlaying) {
+    _audioPlaybackSubscription = _audioService.activeAudioStream.listen((_) {
       if (!mounted) return;
-      if (!isPlaying) {
-        setState(() {
-          _isSpeakingMap.updateAll((key, value) => false);
-        });
-      }
+      setState(() {});
     });
   }
 
@@ -59,9 +54,11 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
   void _applyFilters() {
     setState(() {
       _filteredGuidesList = guides.where((guide) {
-        final matchesSeverity = _selectedSeverity == null || guide.severity == _selectedSeverity;
-        final matchesSearch = guide.title.toLowerCase().contains(_searchQuery.toLowerCase()) || 
-                             guide.problem.toLowerCase().contains(_searchQuery.toLowerCase());
+        final matchesSeverity =
+            _selectedSeverity == null || guide.severity == _selectedSeverity;
+        final matchesSearch =
+            guide.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+            guide.problem.toLowerCase().contains(_searchQuery.toLowerCase());
         return matchesSeverity && matchesSearch;
       }).toList();
     });
@@ -69,26 +66,31 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
 
   Color _getSeverityColor(String severity) {
     switch (severity) {
-      case 'high': return const Color(0xFFD32F2F); // Red
-      case 'medium': return const Color(0xFFF57C00); // Orange
-      default: return const Color(0xFF388E3C); // Green
+      case 'high':
+        return const Color(0xFFD32F2F); // Red
+      case 'medium':
+        return const Color(0xFFF57C00); // Orange
+      default:
+        return const Color(0xFF388E3C); // Green
     }
   }
 
   String _getSeverityLabel(String severity) {
     switch (severity) {
-      case 'high': return 'Mataas';
-      case 'medium': return 'Katamtaman';
-      default: return 'Mababa';
+      case 'high':
+        return 'Mataas';
+      case 'medium':
+        return 'Katamtaman';
+      default:
+        return 'Mababa';
     }
   }
 
   void _playGuideAudio(String guideId) async {
-    setState(() => _isSpeakingMap[guideId] = true);
     final success = await _audioService.playGuide(guideId);
     if (!success && mounted) {
-      setState(() => _isSpeakingMap[guideId] = false);
-      final guideNum = guideId.replaceAll(RegExp(r'\D'), '') ?? guideId;
+      setState(() {});
+      final guideNum = guideId.replaceAll(RegExp(r'\D'), '');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -98,6 +100,9 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
       );
     }
   }
+
+  bool _isGuidePlaying(String guideId) =>
+      _audioService.activeAudioId == 'guide:$guideId';
 
   @override
   Widget build(BuildContext context) {
@@ -126,24 +131,29 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
                   sliver: _filteredGuidesList.isEmpty
                       ? SliverToBoxAdapter(child: _buildEmptyState())
                       : SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                              return TweenAnimationBuilder(
-                                duration: Duration(milliseconds: 400 + (index * 100)),
-                                tween: Tween<double>(begin: 0, end: 1),
-                                builder: (context, double value, child) {
-                                  return Opacity(
-                                    opacity: value,
-                                    child: Transform.translate(
-                                      offset: Offset(0, 20 * (1 - value)),
-                                      child: _buildGuideCard(_filteredGuidesList[index], oceanDeep),
+                          delegate: SliverChildBuilderDelegate((
+                            context,
+                            index,
+                          ) {
+                            return TweenAnimationBuilder(
+                              duration: Duration(
+                                milliseconds: 400 + (index * 100),
+                              ),
+                              tween: Tween<double>(begin: 0, end: 1),
+                              builder: (context, double value, child) {
+                                return Opacity(
+                                  opacity: value,
+                                  child: Transform.translate(
+                                    offset: Offset(0, 20 * (1 - value)),
+                                    child: _buildGuideCard(
+                                      _filteredGuidesList[index],
+                                      oceanDeep,
                                     ),
-                                  );
-                                },
-                              );
-                            },
-                            childCount: _filteredGuidesList.length,
-                          ),
+                                  ),
+                                );
+                              },
+                            );
+                          }, childCount: _filteredGuidesList.length),
                         ),
                 ),
               ],
@@ -164,7 +174,11 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
         titlePadding: const EdgeInsetsDirectional.only(start: 20, bottom: 16),
         title: const Text(
           'Gabay sa Problema',
-          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.white),
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 18,
+            color: Colors.white,
+          ),
         ),
         background: Container(
           decoration: BoxDecoration(
@@ -179,7 +193,11 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
               Positioned(
                 right: -30,
                 top: -20,
-                child: Icon(Icons.water, size: 200, color: Colors.white.withOpacity(0.05)),
+                child: Icon(
+                  Icons.water,
+                  size: 200,
+                  color: Colors.white.withOpacity(0.05),
+                ),
               ),
             ],
           ),
@@ -188,10 +206,13 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
       actions: [
         IconButton(
           icon: const Icon(Icons.book_outlined, color: Colors.white),
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const DictionaryScreen()),
-          ),
+          onPressed: () {
+            _audioService.stop();
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const DictionaryScreen()),
+            );
+          },
         ),
       ],
     );
@@ -254,10 +275,13 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
     return Padding(
       padding: const EdgeInsets.only(right: 10),
       child: FilterChip(
-        label: Text(label, style: TextStyle(
-          color: isSelected ? Colors.white : Colors.black87,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        )),
+        label: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.black87,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
         selected: isSelected,
         onSelected: (selected) {
           setState(() {
@@ -270,7 +294,9 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
         checkmarkColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: isSelected ? Colors.transparent : Colors.grey[300]!),
+          side: BorderSide(
+            color: isSelected ? Colors.transparent : Colors.grey[300]!,
+          ),
         ),
       ),
     );
@@ -297,15 +323,26 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
         child: ExpansionTile(
           leading: CircleAvatar(
             backgroundColor: _getSeverityColor(guide.severity).withOpacity(0.1),
-            child: Icon(Icons.warning_rounded, color: _getSeverityColor(guide.severity)),
+            child: Icon(
+              Icons.warning_rounded,
+              color: _getSeverityColor(guide.severity),
+            ),
           ),
           title: Text(
-            guide.title, 
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF2D3142))
+            guide.title,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: Color(0xFF2D3142),
+            ),
           ),
           subtitle: Text(
             _getSeverityLabel(guide.severity),
-            style: TextStyle(color: _getSeverityColor(guide.severity), fontWeight: FontWeight.w600, fontSize: 13),
+            style: TextStyle(
+              color: _getSeverityColor(guide.severity),
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
           ),
           children: [
             Padding(
@@ -313,18 +350,26 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Ano ang problema?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  const Text(
+                    'Ano ang problema?',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
                   const SizedBox(height: 4),
-                  Text(guide.problem, style: TextStyle(color: Colors.grey[700], height: 1.4)),
-                  
+                  Text(
+                    guide.problem,
+                    style: TextStyle(color: Colors.grey[700], height: 1.4),
+                  ),
+
                   const SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
                         child: AudioActionButton(
-                          isPlaying: _isSpeakingMap[guide.id] ?? false,
-                          onPressed: (_isSpeakingMap[guide.id] ?? false)
-                              ? () => _audioService.stop().then((_) => setState(() => _isSpeakingMap[guide.id] = false))
+                          isPlaying: _isGuidePlaying(guide.id),
+                          onPressed: _isGuidePlaying(guide.id)
+                              ? () => _audioService.stop().then(
+                                  (_) => setState(() {}),
+                                )
                               : () => _playGuideAudio(guide.id),
                           playingLabel: 'Itigil',
                           stoppedLabel: 'Pakinggan',
@@ -334,17 +379,30 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
                       ),
                     ],
                   ),
-                  
+
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 16),
                     child: Divider(),
                   ),
-                  
-                  Text(AppStrings.cause, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+
+                  Text(
+                    AppStrings.cause,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                  ),
                   Text(guide.cause, style: TextStyle(color: Colors.grey[700])),
-                  
+
                   const SizedBox(height: 16),
-                  Text(AppStrings.solutions, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF388E3C))),
+                  Text(
+                    AppStrings.solutions,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: Color(0xFF388E3C),
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   ...guide.solutions.map((s) => _buildSolutionItem(s)),
                 ],
@@ -362,9 +420,18 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.check_circle_outline, size: 18, color: Color(0xFF388E3C)),
+          const Icon(
+            Icons.check_circle_outline,
+            size: 18,
+            color: Color(0xFF388E3C),
+          ),
           const SizedBox(width: 8),
-          Expanded(child: Text(text, style: const TextStyle(fontSize: 14, height: 1.3))),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 14, height: 1.3),
+            ),
+          ),
         ],
       ),
     );
@@ -377,7 +444,10 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
         children: [
           Icon(Icons.search_off_rounded, size: 80, color: Colors.grey[300]),
           const SizedBox(height: 16),
-          Text('Walang nakitang gabay.', style: TextStyle(color: Colors.grey[500], fontSize: 16)),
+          Text(
+            'Walang nakitang gabay.',
+            style: TextStyle(color: Colors.grey[500], fontSize: 16),
+          ),
         ],
       ),
     );
@@ -385,6 +455,7 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
 
   @override
   void dispose() {
+    _audioService.stop();
     _audioPlaybackSubscription.cancel();
     _audioService.dispose();
     super.dispose();

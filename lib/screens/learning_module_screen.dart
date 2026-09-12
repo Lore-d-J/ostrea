@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:ostrea/models/learning_module.dart';
 import 'package:ostrea/services/local_storage_service.dart';
 import 'package:ostrea/services/audio_playback_service.dart';
@@ -19,34 +20,39 @@ class LearningModuleScreen extends StatefulWidget {
 
 class _LearningModuleScreenState extends State<LearningModuleScreen> {
   int _currentSection = 0;
-  bool _isSpeaking = false;
   late PageController _pageController;
   late AudioPlaybackService _audioService;
-  late StreamSubscription<bool> _audioPlaybackSubscription;
+  late StreamSubscription<String?> _audioPlaybackSubscription;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
     _audioService = AudioPlaybackService();
-    _audioPlaybackSubscription = _audioService.playingStream.listen((isPlaying) {
+    _audioPlaybackSubscription = _audioService.activeAudioStream.listen((_) {
       if (!mounted) return;
-      setState(() {
-        _isSpeaking = isPlaying;
-      });
+      setState(() {});
     });
   }
 
+  String _audioId(int sectionIndex) =>
+      'module:${widget.module.id}:$sectionIndex';
+
+  bool _isSectionPlaying(int sectionIndex) =>
+      _audioService.activeAudioId == _audioId(sectionIndex);
+
   void _playContentSection(int sectionIndex) async {
-    setState(() {
-      _isSpeaking = true;
-    });
-    final success = await _audioService.playModuleSection(widget.module.id, sectionIndex);
+    final success = await _audioService.playModuleSection(
+      widget.module.id,
+      sectionIndex,
+    );
     if (!success && mounted) {
       setState(() {
-        _isSpeaking = false;
+        setState(() {});
       });
-      final moduleNum = widget.module.id.replaceAll(RegExp(r'\D'), '').replaceFirst(RegExp(r'^0+'), '');
+      final moduleNum = widget.module.id
+          .replaceAll(RegExp(r'\D'), '')
+          .replaceFirst(RegExp(r'^0+'), '');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -60,9 +66,7 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
 
   void _stopSpeaking() async {
     await _audioService.stop();
-    setState(() {
-      _isSpeaking = false;
-    });
+    if (mounted) setState(() {});
   }
 
   void _completeModule() async {
@@ -79,7 +83,9 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8), // Match learning modules background
+      backgroundColor: const Color(
+        0xFFF0F4F8,
+      ), // Match learning modules background
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
@@ -112,9 +118,12 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
             icon: Icon(Icons.book),
             tooltip: 'Diksyonaryo',
             onPressed: () {
+              _stopSpeaking();
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const DictionaryScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const DictionaryScreen(),
+                ),
               );
             },
           ),
@@ -141,7 +150,9 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withOpacity(0.05),
                     blurRadius: 15,
                     offset: Offset(0, 5),
                   ),
@@ -189,6 +200,7 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
               child: PageView.builder(
                 controller: _pageController,
                 onPageChanged: (index) {
+                  _stopSpeaking();
                   setState(() {
                     _currentSection = index;
                   });
@@ -361,8 +373,8 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
                 children: [
                   Expanded(
                     child: AudioActionButton(
-                      isPlaying: _isSpeaking,
-                      onPressed: _isSpeaking
+                      isPlaying: _isSectionPlaying(index),
+                      onPressed: _isSectionPlaying(index)
                           ? _stopSpeaking
                           : () => _playContentSection(index),
                       playingLabel: 'Tumitigil',
@@ -381,6 +393,10 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
                 context,
               ).textTheme.bodyLarge?.copyWith(height: 1.6),
             ),
+            if (widget.module.sourceUrl != null) ...[
+              const SizedBox(height: 20),
+              _buildSourceCitation(),
+            ],
             SizedBox(height: 24),
             Container(
               padding: EdgeInsets.all(16),
@@ -423,6 +439,49 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSourceCitation() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blue[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue[100]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Pinagmulan ng Impormasyon:',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            widget.module.sourceTitle ??
+                'Bureau of Fisheries and Aquatic Resources (BFAR)',
+          ),
+          const SizedBox(height: 8),
+          TextButton.icon(
+            onPressed: () async {
+              final opened = await launchUrl(
+                Uri.parse(widget.module.sourceUrl!),
+              );
+              if (!opened && mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Hindi mabuksan ang sanggunian.'),
+                  ),
+                );
+              }
+            },
+            icon: const Icon(Icons.open_in_new),
+            label: const Text('Tingnan ang Sanggunian'),
+          ),
+        ],
       ),
     );
   }

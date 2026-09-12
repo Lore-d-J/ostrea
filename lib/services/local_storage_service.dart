@@ -35,7 +35,9 @@ class LocalStorageService {
   /// Add bookmark
   // Bookmark feature removed
 
-  /// Clear all data (useful for testing)
+  /// Clear all data (testing only; avoid using this in production).
+  /// User progress should be kept across app updates; built-in content is
+  /// refreshed separately by LocalDataService.
   static Future<void> clearAll() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();

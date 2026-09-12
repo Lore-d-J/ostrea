@@ -4,34 +4,46 @@ import 'dart:developer' as developer;
 import 'package:audioplayers/audioplayers.dart';
 
 class AudioPlaybackService {
-  AudioPlayer _audioPlayer = AudioPlayer();
-  final StreamController<bool> _playingController =
-      StreamController<bool>.broadcast();
-  bool _isPlaying = false;
-  bool _isDisposed = false;
+  static final AudioPlaybackService _instance =
+      AudioPlaybackService._internal();
 
-  AudioPlaybackService() {
+  factory AudioPlaybackService() => _instance;
+
+  AudioPlaybackService._internal() {
     _setupListeners();
   }
 
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  final StreamController<bool> _playingController =
+      StreamController<bool>.broadcast();
+  final StreamController<String?> _activeAudioController =
+      StreamController<String?>.broadcast();
+  bool _isPlaying = false;
+  String? _activeAudioId;
+
   void _setupListeners() {
     _audioPlayer.onPlayerStateChanged.listen((state) {
-      if (_isDisposed) return;
-
       final isPlayingNow = state == PlayerState.playing;
       _isPlaying = isPlayingNow;
+      if (!isPlayingNow) _activeAudioId = null;
       if (!_playingController.isClosed) _playingController.add(isPlayingNow);
+      if (!isPlayingNow && !_activeAudioController.isClosed) {
+        _activeAudioController.add(null);
+      }
     });
 
     _audioPlayer.onPlayerComplete.listen((_) {
-      if (_isDisposed) return;
       _isPlaying = false;
+      _activeAudioId = null;
       if (!_playingController.isClosed) _playingController.add(false);
+      if (!_activeAudioController.isClosed) _activeAudioController.add(null);
     });
   }
 
   Stream<bool> get playingStream => _playingController.stream;
+  Stream<String?> get activeAudioStream => _activeAudioController.stream;
   bool get isPlaying => _isPlaying;
+  String? get activeAudioId => _activeAudioId;
 
   /// Extract module number from moduleId (e.g., "module_001" -> "1")
   String _extractModuleNumber(String moduleId) {
@@ -63,36 +75,37 @@ class AudioPlaybackService {
     final assetPath =
         'assets/audio/modules/$folderName/ttsModule${moduleNumber}Section${sectionIndex + 1}.mp3';
 
-    return await _playAsset(assetPath);
+    return await _playAsset(assetPath, 'module:$moduleId:$sectionIndex');
   }
 
   /// Play troubleshooting guide audio.
   /// File naming: ttsTroubleshoot1.mp3
   Future<bool> playGuide(String guideId) async {
     final match = RegExp(r'(\d+)').firstMatch(guideId);
-    final guideNumber =
-        match != null ? int.parse(match.group(1)!).toString() : guideId;
+    final guideNumber = match != null
+        ? int.parse(match.group(1)!).toString()
+        : guideId;
 
     final assetPath = 'assets/audio/guides/ttsTroubleshoot$guideNumber.mp3';
     developer.log('playGuide: guideId=$guideId → assetPath=$assetPath');
-    return await _playAsset(assetPath);
+    return await _playAsset(assetPath, 'guide:$guideId');
   }
 
-  Future<bool> _playAsset(String assetPath) async {
-    if (_isDisposed) return false;
-
+  Future<bool> _playAsset(String assetPath, String audioId) async {
     try {
       // audioplayers AssetSource path must NOT include the "assets/" prefix
       final cleanPath = assetPath.replaceFirst('assets/', '');
       developer.log('AudioPlaybackService: playing → $cleanPath');
 
-      _isPlaying = true;
-      if (!_playingController.isClosed) _playingController.add(true);
-
       // Stop & release current audio before playing new one
       try {
         await _audioPlayer.stop();
       } catch (_) {}
+
+      _isPlaying = true;
+      _activeAudioId = audioId;
+      if (!_playingController.isClosed) _playingController.add(true);
+      if (!_activeAudioController.isClosed) _activeAudioController.add(audioId);
 
       await _audioPlayer.play(AssetSource(cleanPath));
 
@@ -104,37 +117,34 @@ class AudioPlaybackService {
         stackTrace: stack,
       );
       _isPlaying = false;
+      _activeAudioId = null;
       if (!_playingController.isClosed) _playingController.add(false);
+      if (!_activeAudioController.isClosed) _activeAudioController.add(null);
       return false;
     }
   }
 
   Future<void> stop() async {
-    if (_isDisposed) return;
     try {
       await _audioPlayer.stop();
     } catch (_) {}
     _isPlaying = false;
+    _activeAudioId = null;
     if (!_playingController.isClosed) _playingController.add(false);
+    if (!_activeAudioController.isClosed) _activeAudioController.add(null);
   }
 
   Future<void> pause() async {
-    if (_isDisposed) return;
     try {
       await _audioPlayer.pause();
     } catch (_) {}
     _isPlaying = false;
+    _activeAudioId = null;
     if (!_playingController.isClosed) _playingController.add(false);
+    if (!_activeAudioController.isClosed) _activeAudioController.add(null);
   }
 
   Future<void> dispose() async {
-    _isDisposed = true;
-    try {
-      await _audioPlayer.stop();
-      await _audioPlayer.dispose();
-    } catch (_) {}
-    if (!_playingController.isClosed) {
-      await _playingController.close();
-    }
+    await stop();
   }
 }

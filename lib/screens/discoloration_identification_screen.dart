@@ -5,8 +5,6 @@ import 'package:ostrea/services/image_classifier_service.dart';
 import 'package:ostrea/models/prediction_result.dart';
 import 'package:ostrea/utils/recommendation_helper.dart';
 import 'package:ostrea/widgets/result_card.dart';
-import 'package:ostrea/widgets/recommendation_card.dart';
-import 'package:ostrea/localization/app_strings.dart';
 
 class DiscolorationIdentificationScreen extends StatefulWidget {
   const DiscolorationIdentificationScreen({super.key});
@@ -139,7 +137,7 @@ class _DiscolorationIdentificationScreenState
                           color: oceanDeep,
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: _buildImagePickerButton(
                           icon: Icons.photo_library,
@@ -172,15 +170,21 @@ class _DiscolorationIdentificationScreenState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(Icons.tips_and_updates_rounded, color: oceanDeep),
+                            Icon(
+                              Icons.tips_and_updates_rounded,
+                              color: oceanDeep,
+                            ),
                             const SizedBox(width: 8),
-                            Text(
-                              'Halimbawa ng larawan na kunin',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: oceanDeep,
+                            Expanded(
+                              child: Text(
+                                'Halimbawa ng larawan na kunin',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: oceanDeep,
+                                ),
                               ),
                             ),
                           ],
@@ -301,7 +305,9 @@ class _DiscolorationIdentificationScreenState
                         const SizedBox(width: 12),
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: _selectedImage == null ? null : _identifyDisease,
+                            onPressed: _selectedImage == null
+                                ? null
+                                : _identifyDisease,
                             icon: const Icon(Icons.analytics),
                             label: const Text('Suriin'),
                             style: ElevatedButton.styleFrom(
@@ -356,29 +362,16 @@ class _DiscolorationIdentificationScreenState
                         message: _prediction!.message.isNotEmpty
                             ? _prediction!.message
                             : 'Handa na ang pagsusuri.',
-                        badgeColor: _prediction!.label.toLowerCase().contains('normal')
+                        badgeColor:
+                            _prediction!.label.toLowerCase().contains('normal')
                             ? const Color(0xFF2E7D32)
-                            : _prediction!.label.toLowerCase().contains('yellow')
-                                ? const Color(0xFFF9A825)
-                                : _prediction!.label.toLowerCase().contains('green')
-                                    ? const Color(0xFF1976D2)
-                                    : const Color(0xFF546E7A),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    RecommendationCard(
-                      recommendation: Recommendation(
-                        warningLevel: _prediction!.label,
-                        message: _prediction!.description.isNotEmpty
-                            ? _prediction!.description
-                            : 'Handa na ang pagsusuri.',
-                        badgeColor: _prediction!.label.toLowerCase().contains('normal')
-                            ? const Color(0xFF2E7D32)
-                            : _prediction!.label.toLowerCase().contains('yellow')
-                                ? const Color(0xFFF9A825)
-                                : _prediction!.label.toLowerCase().contains('green')
-                                    ? const Color(0xFF1976D2)
-                                    : const Color(0xFF546E7A),
+                            : _prediction!.label.toLowerCase().contains(
+                                'yellow',
+                              )
+                            ? const Color(0xFFF9A825)
+                            : _prediction!.label.toLowerCase().contains('green')
+                            ? const Color(0xFF1976D2)
+                            : const Color(0xFF546E7A),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -476,7 +469,7 @@ class _DiscolorationIdentificationScreenState
     required Color color,
   }) {
     return Container(
-      height: 80,
+      height: 104,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
@@ -494,8 +487,9 @@ class _DiscolorationIdentificationScreenState
           onTap: onPressed,
           borderRadius: BorderRadius.circular(15),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
                   padding: const EdgeInsets.all(8),
@@ -505,13 +499,18 @@ class _DiscolorationIdentificationScreenState
                   ),
                   child: Icon(icon, color: color, size: 24),
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: color,
+                const SizedBox(height: 6),
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: color,
+                    ),
                   ),
                 ),
               ],

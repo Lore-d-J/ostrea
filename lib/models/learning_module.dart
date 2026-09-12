@@ -6,6 +6,8 @@ class LearningModule {
   final String? imageAsset;
   final String? videoAsset;
   final bool hasVoiceNarration;
+  final String? sourceUrl;
+  final String? sourceTitle;
 
   LearningModule({
     required this.id,
@@ -15,6 +17,8 @@ class LearningModule {
     this.imageAsset,
     this.videoAsset,
     this.hasVoiceNarration = true,
+    this.sourceUrl,
+    this.sourceTitle,
   });
 }
 
@@ -63,11 +67,13 @@ class DictionaryEntry {
   final String definition;
   final String category; // e.g., 'biology', 'farming', 'environment'
   final List<String> relatedTerms;
+  final String? imageAsset;
 
   DictionaryEntry({
     required this.term,
     required this.definition,
     required this.category,
     this.relatedTerms = const [],
+    this.imageAsset,
   });
 }

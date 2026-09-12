@@ -2,8 +2,13 @@ import '../models/prediction_result.dart';
 
 class OysterResultHandler {
   static const double confidenceThreshold = 0.70;
+  static const String driedOysterReminder =
+      'Kung mukhang natuyo ang laman, maaaring matagal nang patay o panis na ang talaba. Huwag itong kainin.';
 
-  PredictionResult buildResult({required String label, required double confidence}) {
+  PredictionResult buildResult({
+    required String label,
+    required double confidence,
+  }) {
     final normalizedLabel = label.trim().toLowerCase();
     final effectiveConfidence = confidence.clamp(0.0, 1.0);
 
@@ -11,8 +16,10 @@ class OysterResultHandler {
       return PredictionResult(
         label: 'Unidentified/Di Matukoy',
         confidence: effectiveConfidence,
-        description: 'Hindi makilala ang talaba. Pumili ng mas maliwanag na larawan at siguraduhing makita nang malinaw ang talaba. O posibleng maraming talaba ang nasa larawan, maglagay lang ng isa sa isang pagkakataon.',
-        message: 'Hindi makilala ang talaba. Pumili ng mas maliwanag na larawan at siguraduhing makita nang malinaw ang talaba. O posibleng maraming talaba ang nasa larawan, maglagay lang ng isa sa isang pagkakataon.',
+        description:
+            'Hindi makilala ang talaba. \n\nPumili ng mas maliwanag na larawan at siguraduhing makita nang malinaw ang talaba. O posibleng maraming talaba ang nasa larawan, maglagay lang ng isa sa isang pagkakataon. $driedOysterReminder',
+        message:
+            'Hindi makilala ang talaba. \n\nPumili ng mas maliwanag na larawan at siguraduhing makita nang malinaw ang talaba. O posibleng maraming talaba ang nasa larawan, maglagay lang ng isa sa isang pagkakataon. $driedOysterReminder',
       );
     }
 
@@ -20,8 +27,10 @@ class OysterResultHandler {
       return PredictionResult(
         label: 'Normal',
         confidence: effectiveConfidence,
-        description: 'Normal ang kulay ng talaba, maayos ang hitsura at walang malinaw na pagbabago sa kulay.',
-        message: 'Normal ang kulay ng talaba, maayos ang hitsura at walang malinaw na pagbabago sa kulay.',
+        description:
+            'Normal ang kulay ng talaba, maayos ang hitsura at walang malinaw na pagbabago sa kulay. $driedOysterReminder',
+        message:
+            'Normal ang kulay ng talaba, maayos ang hitsura at walang malinaw na pagbabago sa kulay. $driedOysterReminder',
       );
     }
 
@@ -29,8 +38,10 @@ class OysterResultHandler {
       return PredictionResult(
         label: 'Yellowish/Naninilaw',
         confidence: effectiveConfidence,
-        description: 'May bahagyang dilaw na kulay sa talaba, pero hindi pa ganap na may abnormal na hitsura.',
-        message: 'May bahagyang dilaw na kulay sa talaba. Dapat itong bantayan at suriin ng mabuti.',
+        description:
+            'May bahagyang dilaw na kulay sa talaba. \n\nKung may kasamang mabahong amoy, maaaring patay, panis, o kontaminado ang talaba. Huwag itong kainin at suriin agad nang mabuti. $driedOysterReminder',
+        message:
+            'May bahagyang dilaw na kulay sa talaba. \n\nKung may mabahong amoy, maaaring patay, panis, o kontaminado ito. Huwag itong kainin. $driedOysterReminder',
       );
     }
 
@@ -38,16 +49,20 @@ class OysterResultHandler {
       return PredictionResult(
         label: 'Greenish/Luntiang kulay',
         confidence: effectiveConfidence,
-        description: 'May luntiang kulay na nakikita sa talaba, na maaaring senyales ng hindi maayos na kondisyon.',
-        message: 'May luntiang kulay na nakikita sa talaba. Dapat itong maingat na i-monitor at ayusin ang kondisyon ng tubig.',
+        description:
+            'May luntiang kulay na nakikita sa talaba. \n\nKung may kasamang mabahong amoy, maaaring patay, panis, o kontaminado ang talaba. Huwag itong kainin at suriin agad nang mabuti. $driedOysterReminder',
+        message:
+            'May luntiang kulay na nakikita sa talaba. \n\nKung may mabahong amoy, maaaring patay, panis, o kontaminado ito. Huwag itong kainin. $driedOysterReminder',
       );
     }
 
     return PredictionResult(
       label: 'Unidentified/Di Matukoy',
       confidence: effectiveConfidence,
-      description: 'Hindi makilala ang kulay ng talaba. Pumili ng mas maliwanag na larawan at siguraduhing makita nang malinaw ang talaba. O posibleng maraming talaba ang nasa larawan, maglagay lang ng isa sa isang pagkakataon.',
-      message: 'Hindi makilala ang kulay ng talaba. Pumili ng mas maliwanag na larawan at siguraduhing makita nang malinaw ang talaba. O posibleng maraming talaba ang nasa larawan, maglagay lang ng isa sa isang pagkakataon.',
+      description:
+          'Hindi makilala ang kulay ng talaba. \n\nPumili ng mas maliwanag na larawan at siguraduhing makita nang malinaw ang talaba. O posibleng maraming talaba ang nasa larawan, maglagay lang ng isa sa isang pagkakataon. $driedOysterReminder',
+      message:
+          'Hindi makilala ang kulay ng talaba. \n\nPumili ng mas maliwanag na larawan at siguraduhing makita nang malinaw ang talaba. O posibleng maraming talaba ang nasa larawan, maglagay lang ng isa sa isang pagkakataon. $driedOysterReminder',
     );
   }
 }

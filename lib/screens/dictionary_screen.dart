@@ -34,9 +34,11 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
   void _filterEntries() {
     setState(() {
       _filteredEntries = _allEntries.where((entry) {
-        final matchesSearch = entry.term.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                            entry.definition.toLowerCase().contains(_searchQuery.toLowerCase());
-        final matchesCategory = _selectedCategory == 'All' || entry.category == _selectedCategory;
+        final matchesSearch =
+            entry.term.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+            entry.definition.toLowerCase().contains(_searchQuery.toLowerCase());
+        final matchesCategory =
+            _selectedCategory == 'All' || entry.category == _selectedCategory;
         return matchesSearch && matchesCategory;
       }).toList();
     });
@@ -77,7 +79,9 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8), // Match learning modules background
+      backgroundColor: const Color(
+        0xFFF0F4F8,
+      ), // Match learning modules background
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
@@ -128,10 +132,16 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                               margin: EdgeInsets.only(right: 8),
                               child: FilterChip(
                                 label: Text(
-                                  category == 'All' ? 'Lahat' : _getCategoryLabel(category),
+                                  category == 'All'
+                                      ? 'Lahat'
+                                      : _getCategoryLabel(category),
                                   style: TextStyle(
-                                    color: isSelected ? Colors.white : _getCategoryColor(category),
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : _getCategoryColor(category),
+                                    fontWeight: isSelected
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
                                   ),
                                 ),
                                 selected: isSelected,
@@ -140,7 +150,9 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                                 backgroundColor: Colors.white,
                                 onSelected: (selected) {
                                   setState(() {
-                                    _selectedCategory = selected ? category : 'All';
+                                    _selectedCategory = selected
+                                        ? category
+                                        : 'All';
                                     _filterEntries();
                                   });
                                 },
@@ -160,10 +172,7 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                     children: [
                       Text(
                         '${_filteredEntries.length} resulta${_filteredEntries.length != 1 ? 's' : ''}',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 14,
-                        ),
+                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
                       ),
                     ],
                   ),
@@ -175,17 +184,27 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.search_off, size: 64, color: Colors.grey),
+                              Icon(
+                                Icons.search_off,
+                                size: 64,
+                                color: Colors.grey,
+                              ),
                               SizedBox(height: 16),
                               Text(
                                 'Walang nakitang resulta',
-                                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey[600],
+                                ),
                               ),
                             ],
                           ),
                         )
                       : ListView.builder(
-                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           itemCount: _filteredEntries.length,
                           itemBuilder: (context, index) {
                             final entry = _filteredEntries[index];
@@ -196,7 +215,9 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                                 borderRadius: BorderRadius.circular(24),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary.withOpacity(0.05),
                                     blurRadius: 15,
                                     offset: const Offset(0, 5),
                                   ),
@@ -206,18 +227,27 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                                 title: Row(
                                   children: [
                                     Container(
-                                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
                                       decoration: BoxDecoration(
-                                        color: _getCategoryColor(entry.category).withValues(alpha: 0.1),
+                                        color: _getCategoryColor(
+                                          entry.category,
+                                        ).withValues(alpha: 0.1),
                                         borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
-                                          color: _getCategoryColor(entry.category).withValues(alpha: 0.3),
+                                          color: _getCategoryColor(
+                                            entry.category,
+                                          ).withValues(alpha: 0.3),
                                         ),
                                       ),
                                       child: Text(
                                         _getCategoryLabel(entry.category),
                                         style: TextStyle(
-                                          color: _getCategoryColor(entry.category),
+                                          color: _getCategoryColor(
+                                            entry.category,
+                                          ),
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -239,13 +269,30 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                                   Padding(
                                     padding: EdgeInsets.all(16),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
+                                        if (entry.imageAsset != null) ...[
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            child: Image.asset(
+                                              entry.imageAsset!,
+                                              width: double.infinity,
+                                              height: 160,
+                                              fit: BoxFit.contain,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 16),
+                                        ],
                                         Text(
                                           'Kahulugan:',
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            color: Theme.of(context).colorScheme.primary,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
                                           ),
                                         ),
                                         SizedBox(height: 8),
@@ -262,20 +309,27 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                                             'Kaugnay na Salita:',
                                             style: TextStyle(
                                               fontWeight: FontWeight.bold,
-                                              color: Theme.of(context).colorScheme.primary,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.primary,
                                             ),
                                           ),
                                           SizedBox(height: 8),
                                           Wrap(
                                             spacing: 8,
                                             runSpacing: 4,
-                                            children: entry.relatedTerms.map((term) {
+                                            children: entry.relatedTerms.map((
+                                              term,
+                                            ) {
                                               return Chip(
                                                 label: Text(
                                                   term,
-                                                  style: TextStyle(fontSize: 12),
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                  ),
                                                 ),
-                                                backgroundColor: Colors.grey[100],
+                                                backgroundColor:
+                                                    Colors.grey[100],
                                               );
                                             }).toList(),
                                           ),
