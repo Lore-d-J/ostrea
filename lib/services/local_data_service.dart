@@ -105,7 +105,6 @@ class LocalDataService {
                   'term': entry.term,
                   'definition': entry.definition,
                   'category': entry.category,
-                  'related_terms': entry.relatedTerms,
                   'image_asset': entry.imageAsset,
                 },
               )
@@ -284,9 +283,6 @@ class LocalDataService {
               term: item['term']?.toString() ?? '',
               definition: item['definition']?.toString() ?? '',
               category: item['category']?.toString() ?? 'general',
-              relatedTerms: List<String>.from(
-                item['related_terms'] ?? const [],
-              ),
               imageAsset: item['image_asset']?.toString(),
             ),
           )
@@ -307,7 +303,6 @@ class LocalDataService {
               'term': entry.term,
               'definition': entry.definition,
               'category': entry.category,
-              'related_terms': entry.relatedTerms,
               'image_asset': entry.imageAsset,
             },
           )
@@ -583,7 +578,6 @@ class LocalDataService {
         definition:
             'Isang uri ng kabibe na inaalagaan sa maalat o bahagyang maalat na tubig.',
         category: 'biology',
-        relatedTerms: ['spat', 'hasang', 'pamiitan'],
         imageAsset: 'assets/images/dictionary/talaba.jpg',
       ),
       DictionaryEntry(
@@ -591,7 +585,6 @@ class LocalDataService {
         definition:
             'Maliliit na talaba na nagsisimulang kumapit sa isang angkop na bagay sa tubig.',
         category: 'farming',
-        relatedTerms: ['binhi', 'pamitan', 'talaba'],
         imageAsset: 'assets/images/dictionary/spat.jpg',
       ),
       DictionaryEntry(
@@ -599,7 +592,6 @@ class LocalDataService {
         definition:
             'Paraan ng pag-aalaga kung saan ang mga pamitan ay isinasabit sa istruktura na nakataas sa tubig.',
         category: 'farming',
-        relatedTerms: ['pamitan', 'talabahan'],
         imageAsset: 'assets/images/dictionary/pabitin.jpg',
       ),
       DictionaryEntry(
@@ -607,7 +599,6 @@ class LocalDataService {
         definition:
             'Kondisyon kung saan may sobrang dami ng algae na maaaring magdulot ng kontaminasyon at panganib sa tao. Maaring maging kulay pula, kayumanggi, at berde ang tubig sa lugar na apektado ng red tide.',
         category: 'environment',
-        relatedTerms: ['kaligtasan', 'pag-aani', 'water quality'],
         imageAsset: 'assets/images/dictionary/redtide.jpg',
       ),
       DictionaryEntry(
@@ -615,7 +606,6 @@ class LocalDataService {
         definition:
             'Parte ng talaba na ginagamit upang salain ang tubig at kunin ang pagkain.',
         category: 'biology',
-        relatedTerms: ['pagkain', 'talaba', 'tubig'],
         imageAsset: 'assets/images/dictionary/hasang.jpg',
       ),
       DictionaryEntry(
@@ -623,7 +613,6 @@ class LocalDataService {
         definition:
             'Lugar o estruktura sa tubig kung saan inilalagay at pinapalaki ang mga talaba. Karaniwan itong gawa sa kawayan, poste, lubid, o iba pang materyales na nagsisilbing suporta sa pagpapalaki ng talaba.',
         category: 'farming',
-        relatedTerms: ['pamitan', 'talabahan', 'pabitin', 'talaba'],
         imageAsset: 'assets/images/dictionary/pamiitan.jpg',
       ),
       DictionaryEntry(
@@ -631,7 +620,6 @@ class LocalDataService {
         definition:
             '"Sponge" sa ingles, isa itong organismong kumakapit sa mga kagamitan at istruktura sa talabahan.',
         category: 'farming',
-        relatedTerms: ['pamitan', 'talabahan', 'pabitin', 'talaba'],
         imageAsset: 'assets/images/dictionary/espongha.jpg',
       ),
     ];

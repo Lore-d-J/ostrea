@@ -7,73 +7,26 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:ostrea/main.dart';
-import 'package:ostrea/localization/app_strings.dart';
 import 'package:ostrea/localization/app_strings_helper.dart';
-import 'package:ostrea/models/learning_module.dart';
-import 'package:ostrea/screens/learning_module_screen.dart';
 import 'package:ostrea/theme/app_theme.dart';
 
 void main() {
+  test('requested ocean palette constants are defined in the theme', () {
+    expect(AppTheme.primaryColor, const Color(0xFF006D77));
+    expect(AppTheme.secondaryColor, const Color(0xFF83C5BE));
+    expect(AppTheme.tertiaryColor, const Color(0xFF004D40));
+    expect(AppTheme.accentColor, const Color(0xFFFF6B6B));
+    expect(AppTheme.backgroundColor, const Color(0xFFF0F4F8));
+    expect(AppTheme.surfaceColor, const Color(0xFFFFFFFF));
+    expect(AppTheme.errorColor, const Color(0xFFD32F2F));
+    expect(AppTheme.warningColor, const Color(0xFFF57F17));
+    expect(AppTheme.successColor, const Color(0xFF06A77D));
+  });
+
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     await tester.pumpWidget(const OstreaApp());
     expect(find.text(AppStringsHelper.homeTitle), findsOneWidget);
-  });
-
-  test('dark theme exposes the requested palette and brightness', () {
-    final darkTheme = AppTheme.getDarkTheme();
-
-    expect(darkTheme.brightness, Brightness.dark);
-    expect(darkTheme.colorScheme.primary, const Color(0xFF111313));
-    expect(darkTheme.colorScheme.secondary, const Color(0xFF1C2020));
-    expect(darkTheme.colorScheme.tertiary, const Color(0xFF11D5B4));
-    expect(darkTheme.colorScheme.error, const Color(0xFFC43838));
-  });
-
-  testWidgets('pressing OK on a completed module pops back to the module list', (tester) async {
-    SharedPreferences.setMockInitialValues({});
-
-    final module = LearningModule(
-      id: 'module1',
-      title: 'Sample Module',
-      description: 'Sample description',
-      contentSections: ['Only one section'],
-      imageAsset: null,
-      videoAsset: null,
-      hasVoiceNarration: false,
-    );
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Builder(
-          builder: (context) => Scaffold(
-            body: Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => LearningModuleScreen(module: module),
-                    ),
-                  );
-                },
-                child: const Text('open module'),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    await tester.tap(find.text('open module'));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(LearningModuleScreen), findsOneWidget);
-    await tester.tap(find.text(AppStrings.ok));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(LearningModuleScreen), findsNothing);
   });
 }

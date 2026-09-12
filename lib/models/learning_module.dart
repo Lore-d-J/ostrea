@@ -66,14 +66,12 @@ class DictionaryEntry {
   final String term;
   final String definition;
   final String category; // e.g., 'biology', 'farming', 'environment'
-  final List<String> relatedTerms;
   final String? imageAsset;
 
   DictionaryEntry({
     required this.term,
     required this.definition,
     required this.category,
-    this.relatedTerms = const [],
     this.imageAsset,
   });
 }

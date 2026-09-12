@@ -303,37 +303,6 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                                             height: 1.5,
                                           ),
                                         ),
-                                        if (entry.relatedTerms.isNotEmpty) ...[
-                                          SizedBox(height: 16),
-                                          Text(
-                                            'Kaugnay na Salita:',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: Theme.of(
-                                                context,
-                                              ).colorScheme.primary,
-                                            ),
-                                          ),
-                                          SizedBox(height: 8),
-                                          Wrap(
-                                            spacing: 8,
-                                            runSpacing: 4,
-                                            children: entry.relatedTerms.map((
-                                              term,
-                                            ) {
-                                              return Chip(
-                                                label: Text(
-                                                  term,
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                  ),
-                                                ),
-                                                backgroundColor:
-                                                    Colors.grey[100],
-                                              );
-                                            }).toList(),
-                                          ),
-                                        ],
                                       ],
                                     ),
                                   ),
