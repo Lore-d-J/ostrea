@@ -77,6 +77,7 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
           content: Text('Tapos na ang módulo! Magpatuloy sa pag-aaral!'),
         ),
       );
+      Navigator.of(context).pop();
     }
   }
 

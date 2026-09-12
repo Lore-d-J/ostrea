@@ -320,7 +320,7 @@ class LocalDataService {
     return [
       LearningModule(
         id: 'module1',
-        title: 'Aralin 1: Pagkilala sa Talaba',
+        title: 'Pagkilala sa Talaba',
         description:
             'Alamin ang talaba at ang kahalagahan ng tamang pag-aalaga nito.',
         contentSections: [
@@ -334,7 +334,7 @@ class LocalDataService {
       ),
       LearningModule(
         id: 'module2',
-        title: 'Aralin 2: Pagpili ng Lugar',
+        title: 'Pagpili ng Lugar',
         description: 'Alamin kung saan dapat itayo ang talabahan.',
         contentSections: [
           'Ano ang magandang lugar para sa talaba?\nMas mainam ang lugar na may maalat hanggang bahagyang maalat na tubig at sapat na lalim kahit mababa ang tubig.\n\nAyon sa BFAR, ang angkop na alat ng tubig ay humigit-kumulang 15 hanggang 26 ppt, habang ang temperatura ay nasa 20 hanggang 30°C.',
@@ -350,7 +350,7 @@ class LocalDataService {
       ),
       LearningModule(
         id: 'module3',
-        title: 'Aralin 3: Pagkuha ng Spat o Binhing Talaba',
+        title: 'Pagkuha ng Spat o Binhing Talaba',
         description: 'Paano makukuha at ilalagay ang spat o binhi ng talaba?',
         contentSections: [
           'Ano ang spat?\nAng spat ay maliliit na talaba na nagsisimulang kumapit sa isang angkop na bagay sa tubig.\n\nKaraniwang ginagamit ang walang lamang balat ng talaba bilang pamitan ng spat.',
@@ -363,7 +363,7 @@ class LocalDataService {
       ),
       LearningModule(
         id: 'module4',
-        title: 'Aralin 4: Paraan ng Pag-aalaga',
+        title: 'Paraan ng Pag-aalaga',
         description: 'Iba-ibang paraan ng pagtatanim at pag-aalaga ng talaba.',
         contentSections: [
           'Iba-ibang paraan\nMay ilang paraan ng pag-aalaga ng talaba:\n\n- Tulos\n- Pabitin\n- Sampayan\n- Parangit\nSa materyal ng BFAR, ang paraan na pabitin ang inirerekomenda.',
@@ -379,7 +379,7 @@ class LocalDataService {
       ),
       LearningModule(
         id: 'module5',
-        title: 'Aralin 5: Pangangalaga sa Talabahan',
+        title: 'Pangangalaga sa Talabahan',
         description: 'Paano regular na suriin at pangalagaan ang talabahan?',
         contentSections: [
           'Regular na suriin\nRegular na tingnan ang buong istruktura ng talabahan.',
@@ -392,7 +392,7 @@ class LocalDataService {
       ),
       LearningModule(
         id: 'module6',
-        title: 'Aralin 6: Pag-alis ng Espongha',
+        title: 'Pag-alis ng Espongha',
         description: 'Paano alisin ang espongha sa ibabaw ng talaba?',
         contentSections: [
           'Problema\nMaaaring tumubo ang espongha sa ibabaw ng balat ng talaba.',
@@ -406,7 +406,7 @@ class LocalDataService {
       ),
       LearningModule(
         id: 'module7',
-        title: 'Aralin 7: Tamang Posisyon ng Talaba',
+        title: 'Tamang Posisyon ng Talaba',
         description: 'Paano dapat nakaposisyon ang mga talaba sa pabitin?',
         contentSections: [
           'Saan dapat nakaposisyon ang talaba?\nAng mga nakabitin na talaba ay dapat nasa ibaba lamang ng karaniwang pinakamababang lebel ng tubig.',
@@ -419,7 +419,7 @@ class LocalDataService {
       ),
       LearningModule(
         id: 'module8',
-        title: 'Aralin 8: Paglaki ng Talaba',
+        title: 'Paglaki ng Talaba',
         description: 'Paano kumakain at lumaki ang talaba?',
         contentSections: [
           'Paano kumakain ang talaba?\nSinasala ng talaba ang tubig upang makakuha ng pagkain tulad ng maliliit na organismo, phytoplankton, at organikong bagay.',
@@ -435,7 +435,7 @@ class LocalDataService {
       ),
       LearningModule(
         id: 'module9',
-        title: 'Aralin 9: Pag-aani ng Talaba',
+        title: 'Pag-aani ng Talaba',
         description: 'Paano mag-aani ng talaba nang tama?',
         contentSections: [
           'Kailan maaaring mag-ani?\nMaaaring paghiwalayin ang malalaking talaba para ibenta habang iniiwan ang maliliit upang patuloy na lumaki.',
@@ -448,7 +448,7 @@ class LocalDataService {
       ),
       LearningModule(
         id: 'module10',
-        title: 'Aralin 10: Kaligtasan sa Pag-aani',
+        title: 'Kaligtasan sa Pag-aani',
         description: 'Ano ang dapat gawin kapag may red tide?',
         contentSections: [
           'Red Tide\nKapag may red tide sa lugar, kailangang itigil o ipagpaliban ang pag-aani.\n\nMaaaring maging sanhi ng pagkalason sa tao ang pagkain ng talaba mula sa lugar na apektado ng red tide.',
@@ -461,7 +461,7 @@ class LocalDataService {
       ),
       LearningModule(
         id: 'module11',
-        title: 'Aralin 11: Tamang Pag-aalaga sa Talabahan',
+        title: 'Tamang Pag-aalaga sa Talabahan',
         description: 'Araw-araw na paalala sa tamang pag-aalaga ng talaba.',
         contentSections: [
           'Araw-araw na paalala\nHindi kailangang komplikado ang pag-aalaga ng talaba.\n\nAng mahalaga ay regular na:\n- Suriin ang istruktura.\n- Tingnan ang kondisyon ng mga talaba.\n- Alisin ang espongha.\n- Ayusin ang sirang bahagi.\n- Bantayan ang kondisyon ng tubig.\n- Bantayan ang lugar laban sa pagnanakaw.',
