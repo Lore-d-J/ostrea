@@ -6,12 +6,31 @@ void main() {
     test('maps low confidence to unidentified', () {
       final result = OysterResultHandler().buildResult(
         label: 'Normal',
-        confidence: 0.65,
+        confidence: 0.79,
       );
 
-      expect(result.label, 'Unidentified');
-      expect(result.confidence, 0.65);
-      expect(result.message, contains('clearer image'));
+      expect(result.label, 'Unidentified/Di Matukoy');
+      expect(result.confidence, 0.79);
+      expect(result.message, contains('Hindi makilala'));
+    });
+
+    test('keeps exactly 80 percent confidence identified', () {
+      final result = OysterResultHandler().buildResult(
+        label: 'Normal',
+        confidence: 0.80,
+      );
+
+      expect(result.label, 'Normal');
+    });
+
+    test('keeps an unidentified result unidentified at high confidence', () {
+      final result = OysterResultHandler().buildResult(
+        label: 'Unidentified',
+        confidence: 0.95,
+      );
+
+      expect(result.label, 'Unidentified/Di Matukoy');
+      expect(result.confidence, 0.95);
     });
 
     test('maps normal label to the healthy description', () {
@@ -38,7 +57,10 @@ void main() {
       expect(yellowish.label, 'Yellowish');
       expect(yellowish.description.toLowerCase(), contains('yellow tint'));
       expect(greenish.label, 'Greenish');
-      expect(greenish.description.toLowerCase(), contains('green or olive-green'));
+      expect(
+        greenish.description.toLowerCase(),
+        contains('green or olive-green'),
+      );
     });
   });
 }

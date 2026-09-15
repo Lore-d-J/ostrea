@@ -5,11 +5,15 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
 
 import 'package:ostrea/main.dart';
 import 'package:ostrea/localization/app_strings_helper.dart';
+import 'package:ostrea/services/image_classifier_service.dart';
 import 'package:ostrea/theme/app_theme.dart';
 
 void main() {
@@ -23,6 +27,18 @@ void main() {
     expect(AppTheme.errorColor, const Color(0xFFD32F2F));
     expect(AppTheme.warningColor, const Color(0xFFF57F17));
     expect(AppTheme.successColor, const Color(0xFF06A77D));
+  });
+
+  test('classifier greenish image heuristic detects green pixels', () {
+    final image = img.Image(width: 20, height: 20);
+    for (var y = 0; y < image.height; y++) {
+      for (var x = 0; x < image.width; x++) {
+        image.setPixelRgba(x, y, 15, 120, 30, 255);
+      }
+    }
+
+    final bytes = Uint8List.fromList(img.encodeJpg(image));
+    expect(ImageClassifierService.looksGreenish(bytes), isTrue);
   });
 
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {

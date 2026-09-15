@@ -197,7 +197,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                                   ),
                                   padding: const EdgeInsets.all(14),
                                   child: Image.asset(
-                                    'assets/images/ostreaLogo.png',
+                                    'assets/images/ostreaLogo_rmvName.png',
                                     fit: BoxFit.contain,
                                   ),
                                 ),

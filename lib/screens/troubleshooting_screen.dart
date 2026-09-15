@@ -350,6 +350,20 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (guide.imageAsset != null) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.asset(
+                        guide.imageAsset!,
+                        width: double.infinity,
+                        height: 190,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const SizedBox.shrink(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   const Text(
                     'Ano ang problema?',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),

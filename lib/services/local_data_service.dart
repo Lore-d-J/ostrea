@@ -7,7 +7,7 @@ import 'package:ostrea/models/learning_module.dart';
 class LocalDataService {
   // Bump this whenever bundled content changes in a way that requires replacing
   // stale values stored from an older APK install.
-  static const int currentContentVersion = 6;
+  static const int currentContentVersion = 7;
 
   static const String _contentVersionKey = 'built_in_content_version';
   static const String _learningModulesKey = 'learning_modules';
@@ -480,6 +480,7 @@ class LocalDataService {
           'Suriin ang tubig at kung may pagbaha.',
           'Maaaring bumaba nang husto ang alat ng tubig kapag bumaha.',
         ],
+        imageAsset: 'assets/images/troubleshooting_guide1.png',
         severity: 'high',
       ),
       TroubleshootingGuide(
@@ -491,6 +492,7 @@ class LocalDataService {
           'Alisin ang espongha sa balat ng talaba.',
           'Maaaring makaapekto ito sa daloy ng tubig, pagkain, at oxygen.',
         ],
+        imageAsset: 'assets/images/troubleshooting_guide2.png',
         severity: 'medium',
       ),
       TroubleshootingGuide(
@@ -502,6 +504,7 @@ class LocalDataService {
           'Suriin ang kawayan, poste, lubid, at platform.',
           'Ayusin o palitan agad ang sirang bahagi.',
         ],
+        imageAsset: 'assets/images/troubleshooting_guide3.png',
         severity: 'high',
       ),
       TroubleshootingGuide(
@@ -514,6 +517,7 @@ class LocalDataService {
           'Ayusin ang anumang nasira.',
           'Para sa pagpili ng lugar, mas mainam ang mga lugar na protektado laban sa malakas na hangin at alon.',
         ],
+        imageAsset: 'assets/images/troubleshooting_guide4.png',
         severity: 'medium',
       ),
       TroubleshootingGuide(
@@ -526,6 +530,7 @@ class LocalDataService {
           'Suriin ang kondisyon ng tubig at dami ng putik.',
           'Maaaring magdulot ang pagbaha ng mababang alat at matinding pag-ipon ng putik.',
         ],
+        imageAsset: 'assets/images/troubleshooting_guide5.png',
         severity: 'high',
       ),
       TroubleshootingGuide(
@@ -538,6 +543,7 @@ class LocalDataService {
           'ITIGIL ANG PAG-AANI.',
           'Huwag kumain o magbenta ng talaba mula sa apektadong lugar hanggang ma-clear ito.',
         ],
+        imageAsset: 'assets/images/troubleshooting_guide6.png',
         severity: 'critical',
       ),
     ];

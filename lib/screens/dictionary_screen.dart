@@ -275,7 +275,7 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                                         if (entry.imageAsset != null) ...[
                                           ClipRRect(
                                             borderRadius: BorderRadius.circular(
-                                              12,
+                                              16,
                                             ),
                                             child: Image.asset(
                                               entry.imageAsset!,

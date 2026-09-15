@@ -5,7 +5,10 @@ import 'package:ostrea/screens/learning_module_screen.dart';
 import 'package:ostrea/services/local_storage_service.dart';
 import 'package:ostrea/services/local_data_service.dart';
 import 'package:ostrea/screens/dictionary_screen.dart';
+import 'package:ostrea/screens/about_us_screen.dart';
+import 'package:ostrea/screens/help_screen.dart';
 import 'package:ostrea/localization/app_strings.dart';
+import 'package:ostrea/theme/app_theme.dart';
 
 class LearningModulesScreen extends StatefulWidget {
   const LearningModulesScreen({super.key});
@@ -69,7 +72,6 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
   Widget build(BuildContext context) {
     // Custom aquatic colors
     final Color oceanDeep = const Color(0xFF006D77);
-    final Color oceanLight = const Color(0xFF83C5BE);
 
     final filteredModules = modules.where((module) {
       return module.title.toLowerCase().contains(_searchQuery) ||
@@ -77,7 +79,7 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8), 
+      backgroundColor: const Color(0xFFF0F4F8),
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: oceanDeep))
           : CustomScrollView(
@@ -87,25 +89,25 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                   sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        // Entry animation logic
-                        return TweenAnimationBuilder(
-                          duration: Duration(milliseconds: 400 + (index * 100)),
-                          tween: Tween<double>(begin: 0, end: 1),
-                          builder: (context, double value, child) {
-                            return Opacity(
-                              opacity: value,
-                              child: Transform.translate(
-                                offset: Offset(0, 30 * (1 - value)),
-                                child: _buildModuleCard(filteredModules[index], oceanDeep),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      // Entry animation logic
+                      return TweenAnimationBuilder(
+                        duration: Duration(milliseconds: 400 + (index * 100)),
+                        tween: Tween<double>(begin: 0, end: 1),
+                        builder: (context, double value, child) {
+                          return Opacity(
+                            opacity: value,
+                            child: Transform.translate(
+                              offset: Offset(0, 30 * (1 - value)),
+                              child: _buildModuleCard(
+                                filteredModules[index],
+                                oceanDeep,
                               ),
-                            );
-                          },
-                        );
-                      },
-                      childCount: filteredModules.length,
-                    ),
+                            ),
+                          );
+                        },
+                      );
+                    }, childCount: filteredModules.length),
                   ),
                 ),
               ],
@@ -126,7 +128,11 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
         titlePadding: const EdgeInsetsDirectional.only(start: 20, bottom: 65),
         title: const Text(
           'Mga Modulo',
-          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.white),
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 18,
+            color: Colors.white,
+          ),
         ),
         background: Container(
           decoration: BoxDecoration(
@@ -141,7 +147,11 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
               Positioned(
                 right: -30,
                 top: -20,
-                child: Icon(Icons.water, size: 200, color: Colors.white.withOpacity(0.05)),
+                child: Icon(
+                  Icons.water,
+                  size: 200,
+                  color: Colors.white.withOpacity(0.05),
+                ),
               ),
             ],
           ),
@@ -154,11 +164,11 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
           child: Container(
             height: 48,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppTheme.oceanFoam,
               borderRadius: BorderRadius.circular(18),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.10),
                   blurRadius: 18,
                   offset: const Offset(0, 6),
                 ),
@@ -174,14 +184,21 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
                   padding: const EdgeInsets.only(left: 16, right: 8),
                   child: Icon(Icons.search, color: primaryColor, size: 22),
                 ),
-                prefixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                prefixIconConstraints: const BoxConstraints(
+                  minWidth: 40,
+                  minHeight: 40,
+                ),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? Padding(
                         padding: const EdgeInsets.only(right: 8),
                         child: InkWell(
                           borderRadius: BorderRadius.circular(14),
                           onTap: () => _searchController.clear(),
-                          child: const Icon(Icons.close, size: 20, color: Colors.grey),
+                          child: const Icon(
+                            Icons.close,
+                            size: 20,
+                            color: Colors.grey,
+                          ),
                         ),
                       )
                     : null,
@@ -210,6 +227,25 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const DictionaryScreen()),
+            ),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.info_outline, color: Colors.white),
+          tooltip: 'About Us',
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AboutUsScreen()),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(right: 8.0),
+          child: IconButton(
+            icon: const Icon(Icons.help_outline, color: Colors.white),
+            tooltip: 'Help',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const HelpScreen()),
             ),
           ),
         ),
@@ -311,12 +347,24 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          _buildSmallTag(Icons.menu_book, "${module.contentSections.length}", Colors.orange),
+                          _buildSmallTag(
+                            Icons.menu_book,
+                            "${module.contentSections.length}",
+                            Colors.orange,
+                          ),
                           const SizedBox(width: 12),
                           if (isCompleted)
-                            _buildSmallTag(Icons.check_circle, "Tapos na", Colors.green)
+                            _buildSmallTag(
+                              Icons.check_circle,
+                              "Tapos na",
+                              Colors.green,
+                            )
                           else
-                            _buildSmallTag(Icons.arrow_forward, "Simulan", primaryColor),
+                            _buildSmallTag(
+                              Icons.arrow_forward,
+                              "Simulan",
+                              primaryColor,
+                            ),
                         ],
                       ),
                     ],
@@ -338,8 +386,8 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
         Text(
           label,
           style: TextStyle(
-            fontSize: 12, 
-            fontWeight: FontWeight.bold, 
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
             color: color.withOpacity(0.8),
           ),
         ),

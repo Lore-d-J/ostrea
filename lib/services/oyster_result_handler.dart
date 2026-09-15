@@ -1,7 +1,7 @@
 import '../models/prediction_result.dart';
 
 class OysterResultHandler {
-  static const double confidenceThreshold = 0.70;
+  static const double confidenceThreshold = 0.80;
   static const String driedOysterReminder =
       'Kung mukhang natuyo ang laman, maaaring matagal nang patay o panis na ang talaba. Huwag itong kainin.';
 
@@ -12,15 +12,13 @@ class OysterResultHandler {
     final normalizedLabel = label.trim().toLowerCase();
     final effectiveConfidence = confidence.clamp(0.0, 1.0);
 
+    if (normalizedLabel.contains('unidentified') ||
+        normalizedLabel.contains('di matukoy')) {
+      return _buildUnidentifiedResult(effectiveConfidence);
+    }
+
     if (effectiveConfidence < confidenceThreshold) {
-      return PredictionResult(
-        label: 'Unidentified/Di Matukoy',
-        confidence: effectiveConfidence,
-        description:
-            'Hindi makilala ang talaba. \n\nPumili ng mas maliwanag na larawan at siguraduhing makita nang malinaw ang talaba. O posibleng maraming talaba ang nasa larawan, maglagay lang ng isa sa isang pagkakataon. $driedOysterReminder',
-        message:
-            'Hindi makilala ang talaba. \n\nPumili ng mas maliwanag na larawan at siguraduhing makita nang malinaw ang talaba. O posibleng maraming talaba ang nasa larawan, maglagay lang ng isa sa isang pagkakataon. $driedOysterReminder',
-      );
+      return _buildUnidentifiedResult(effectiveConfidence);
     }
 
     if (normalizedLabel.contains('normal')) {
@@ -56,9 +54,13 @@ class OysterResultHandler {
       );
     }
 
+    return _buildUnidentifiedResult(effectiveConfidence);
+  }
+
+  PredictionResult _buildUnidentifiedResult(double confidence) {
     return PredictionResult(
       label: 'Unidentified/Di Matukoy',
-      confidence: effectiveConfidence,
+      confidence: confidence,
       description:
           'Hindi makilala ang kulay ng talaba. \n\nPumili ng mas maliwanag na larawan at siguraduhing makita nang malinaw ang talaba. O posibleng maraming talaba ang nasa larawan, maglagay lang ng isa sa isang pagkakataon. $driedOysterReminder',
       message:

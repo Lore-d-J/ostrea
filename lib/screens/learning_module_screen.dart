@@ -304,6 +304,9 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
   }
 
   Widget _buildLessonPage(int index) {
+    final sectionImageAsset =
+        'assets/images/modules/${widget.module.id}_section${index + 1}.png';
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -329,13 +332,17 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
                 margin: EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(24),
-                  color: Colors.grey[200],
+                  color: Colors.transparent,
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(24),
                   child: Image.asset(
-                    widget.module.imageAsset!,
-                    fit: BoxFit.cover,
+                    sectionImageAsset,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => Image.asset(
+                      widget.module.imageAsset!,
+                      fit: BoxFit.contain,
+                    ),
                   ),
                 ),
               ),
@@ -394,50 +401,9 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
                 context,
               ).textTheme.bodyLarge?.copyWith(height: 1.6),
             ),
-            if (widget.module.sourceUrl != null) ...[
-              const SizedBox(height: 20),
-              _buildSourceCitation(),
-            ],
+            const SizedBox(height: 20),
+            _buildSourceCitation(),
             SizedBox(height: 24),
-            Container(
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.green[50],
-                border: Border(left: BorderSide(color: Colors.green, width: 4)),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.green.withOpacity(0.1),
-                    blurRadius: 15,
-                    offset: Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.lightbulb, color: Colors.green[700], size: 20),
-                      SizedBox(width: 8),
-                      Text(
-                        'Pangunahing Punto',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green[700],
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Tandaan ang pangunahing punto mula sa seksyong ito para sa mas mahusay na pagsasanay sa oyster.',
-                    style: TextStyle(color: Colors.green[600]),
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
       ),
@@ -465,23 +431,25 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
             widget.module.sourceTitle ??
                 'Bureau of Fisheries and Aquatic Resources (BFAR)',
           ),
-          const SizedBox(height: 8),
-          TextButton.icon(
-            onPressed: () async {
-              final opened = await launchUrl(
-                Uri.parse(widget.module.sourceUrl!),
-              );
-              if (!opened && mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Hindi mabuksan ang sanggunian.'),
-                  ),
+          if (widget.module.sourceUrl != null) ...[
+            const SizedBox(height: 8),
+            TextButton.icon(
+              onPressed: () async {
+                final opened = await launchUrl(
+                  Uri.parse(widget.module.sourceUrl!),
                 );
-              }
-            },
-            icon: const Icon(Icons.open_in_new),
-            label: const Text('Tingnan ang Sanggunian'),
-          ),
+                if (!opened && mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Hindi mabuksan ang sanggunian.'),
+                    ),
+                  );
+                }
+              },
+              icon: const Icon(Icons.open_in_new),
+              label: const Text('Tingnan ang Sanggunian'),
+            ),
+          ],
         ],
       ),
     );

@@ -92,7 +92,7 @@ class AppStrings {
   static const String back = 'Bumalik';
   static const String next = 'Susunod';
   static const String previous = 'Nauna';
-  static const String ok = 'OK';
+  static const String ok = 'Tapos na';
 
   // Error Messages
   static const String errorOccurred = 'May naganap na problema';
