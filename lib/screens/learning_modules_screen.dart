@@ -1,14 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Added for Haptics
 import 'package:ostrea/models/learning_module.dart';
 import 'package:ostrea/screens/learning_module_screen.dart';
 import 'package:ostrea/services/local_storage_service.dart';
 import 'package:ostrea/services/local_data_service.dart';
-import 'package:ostrea/screens/dictionary_screen.dart';
-import 'package:ostrea/screens/about_us_screen.dart';
-import 'package:ostrea/screens/help_screen.dart';
 import 'package:ostrea/localization/app_strings.dart';
+import 'package:ostrea/screens/help_screen.dart';
 import 'package:ostrea/theme/app_theme.dart';
+import 'package:ostrea/widgets/screen_navigation_actions.dart';
 
 class LearningModulesScreen extends StatefulWidget {
   const LearningModulesScreen({super.key});
@@ -23,6 +24,9 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
   bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  final LayerLink _helpButtonLayerLink = LayerLink();
+  OverlayEntry? _helpTooltipEntry;
+  Timer? _helpTooltipTimer;
 
   @override
   void initState() {
@@ -37,7 +41,100 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
 
   void _initData() async {
     await Future.wait([_loadModules(), _loadProgress()]);
-    if (mounted) setState(() => _isLoading = false);
+    if (mounted) {
+      setState(() => _isLoading = false);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showHelpTooltip();
+      });
+    }
+  }
+
+  void _showHelpTooltip() {
+    if (!mounted || _helpTooltipEntry != null || HelpTooltipState.hasShown) {
+      return;
+    }
+
+    HelpTooltipState.hasShown = true;
+
+    _helpTooltipEntry = OverlayEntry(
+      builder: (context) => CompositedTransformFollower(
+        link: _helpButtonLayerLink,
+        targetAnchor: Alignment.bottomRight,
+        followerAnchor: Alignment.topRight,
+        offset: const Offset(0, 8),
+        child: Material(
+          color: Colors.transparent,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: CustomPaint(
+                  size: const Size(18, 10),
+                  painter: _TooltipArrowPainter(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ),
+              Container(
+                width: 250,
+                padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 10,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        '💡 Kailangan ng tulong?\nPindutin dito para makita kung paano gamitin ang Ostrea.',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          height: 1.3,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: _dismissHelpTooltip,
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      iconSize: 18,
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 28,
+                        minHeight: 28,
+                      ),
+                      tooltip: 'Isara',
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_helpTooltipEntry!);
+    _helpTooltipTimer = Timer(const Duration(seconds: 10), () {
+      _dismissHelpTooltip();
+    });
+  }
+
+  void _dismissHelpTooltip() {
+    _helpTooltipTimer?.cancel();
+    _helpTooltipTimer = null;
+    _helpTooltipEntry?.remove();
+    _helpTooltipEntry = null;
   }
 
   Future<void> _loadModules() async {
@@ -54,6 +151,7 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
 
   @override
   void dispose() {
+    _dismissHelpTooltip();
     _searchController.dispose();
     super.dispose();
   }
@@ -219,35 +317,15 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
         ),
       ),
       actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 8.0),
-          child: IconButton(
-            icon: const Icon(Icons.auto_stories, color: Colors.white),
-            tooltip: 'Diksyonaryo',
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const DictionaryScreen()),
-            ),
-          ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.info_outline, color: Colors.white),
-          tooltip: 'About Us',
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AboutUsScreen()),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(right: 8.0),
-          child: IconButton(
-            icon: const Icon(Icons.help_outline, color: Colors.white),
-            tooltip: 'Help',
-            onPressed: () => Navigator.push(
+        ScreenNavigationActions(
+          helpLayerLink: _helpButtonLayerLink,
+          onHelpPressed: () {
+            _dismissHelpTooltip();
+            Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const HelpScreen()),
-            ),
-          ),
+            );
+          },
         ),
       ],
     );
@@ -394,4 +472,24 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
       ],
     );
   }
+}
+
+class _TooltipArrowPainter extends CustomPainter {
+  final Color color;
+
+  const _TooltipArrowPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(0, size.height)
+      ..lineTo(size.width / 2, 0)
+      ..lineTo(size.width, size.height)
+      ..close();
+    canvas.drawPath(path, Paint()..color = color);
+  }
+
+  @override
+  bool shouldRepaint(_TooltipArrowPainter oldDelegate) =>
+      oldDelegate.color != color;
 }

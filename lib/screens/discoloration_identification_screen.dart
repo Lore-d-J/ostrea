@@ -5,6 +5,7 @@ import 'package:ostrea/services/image_classifier_service.dart';
 import 'package:ostrea/models/prediction_result.dart';
 import 'package:ostrea/utils/recommendation_helper.dart';
 import 'package:ostrea/widgets/result_card.dart';
+import 'package:ostrea/widgets/screen_navigation_actions.dart';
 
 class DiscolorationIdentificationScreen extends StatefulWidget {
   const DiscolorationIdentificationScreen({super.key});
@@ -459,6 +460,7 @@ class _DiscolorationIdentificationScreenState
           ),
         ),
       ),
+      actions: const [ScreenNavigationActions()],
     );
   }
 
