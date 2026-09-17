@@ -3,6 +3,54 @@ import 'package:flutter/material.dart';
 class HelpScreen extends StatelessWidget {
   const HelpScreen({super.key});
 
+  static const _helpImages = [
+    'assets/images/H.1.jpg',
+    'assets/images/H.2.jpg',
+    'assets/images/H.3.jpg',
+    'assets/images/H.4.jpg',
+    'assets/images/H.5.jpg',
+    'assets/images/H.6.jpg',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          PageView.builder(
+            itemCount: _helpImages.length,
+            itemBuilder: (context, index) {
+              return SizedBox.expand(
+                child: Image.asset(
+                  _helpImages[index],
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const ColoredBox(color: Colors.black);
+                  },
+                ),
+              );
+            },
+          ),
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: IconButton(
+                onPressed: () => Navigator.of(context).maybePop(),
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                tooltip: 'Bumalik',
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class LegacyHelpScreen extends StatelessWidget {
+  const LegacyHelpScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).colorScheme.primary;

@@ -6,6 +6,7 @@ import 'package:ostrea/services/audio_playback_service.dart';
 import 'package:ostrea/services/local_data_service.dart';
 import 'package:ostrea/localization/app_strings.dart';
 import 'package:ostrea/widgets/audio_action_button.dart';
+import 'package:ostrea/screens/about_us_screen.dart';
 import 'package:ostrea/screens/help_screen.dart';
 import 'package:ostrea/widgets/screen_navigation_actions.dart';
 
@@ -210,7 +211,7 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
             _audioService.stop();
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const HelpScreen()),
+              MaterialPageRoute(builder: (context) => const LegacyHelpScreen()),
             );
           },
         ),

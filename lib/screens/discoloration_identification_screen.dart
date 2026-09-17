@@ -428,9 +428,15 @@ class _DiscolorationIdentificationScreenState
       backgroundColor: primaryColor,
       flexibleSpace: FlexibleSpaceBar(
         centerTitle: false,
-        titlePadding: const EdgeInsetsDirectional.only(start: 20, bottom: 16),
+        titlePadding: const EdgeInsetsDirectional.only(
+          start: 20,
+          end: 160,
+          bottom: 16,
+        ),
         title: Text(
-          'Pagsusuri sa Kulay ng Talaba',
+          'Pagsusuri ng Kulay',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             fontWeight: FontWeight.w900,
             fontSize: 18,

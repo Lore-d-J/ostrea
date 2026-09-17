@@ -7,6 +7,7 @@ import 'package:ostrea/screens/learning_module_screen.dart';
 import 'package:ostrea/services/local_storage_service.dart';
 import 'package:ostrea/services/local_data_service.dart';
 import 'package:ostrea/localization/app_strings.dart';
+import 'package:ostrea/screens/about_us_screen.dart';
 import 'package:ostrea/screens/help_screen.dart';
 import 'package:ostrea/theme/app_theme.dart';
 import 'package:ostrea/widgets/screen_navigation_actions.dart';
@@ -62,63 +63,65 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
         targetAnchor: Alignment.bottomRight,
         followerAnchor: Alignment.topRight,
         offset: const Offset(0, 8),
-        child: Material(
-          color: Colors.transparent,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(right: 16),
-                child: CustomPaint(
-                  size: const Size(18, 10),
-                  painter: _TooltipArrowPainter(
-                    color: Theme.of(context).colorScheme.primary,
+        child: IgnorePointer(
+          child: Material(
+            color: Colors.transparent,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: CustomPaint(
+                    size: const Size(18, 10),
+                    painter: _TooltipArrowPainter(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
-              ),
-              Container(
-                width: 250,
-                padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 10,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Expanded(
-                      child: Text(
-                        '💡 Kailangan ng tulong?\nPindutin dito para makita kung paano gamitin ang Ostrea.',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          height: 1.3,
+                Container(
+                  width: 250,
+                  padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          '💡 Kailangan ng tulong?\nPindutin dito para makita kung paano gamitin ang Ostrea.',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            height: 1.3,
+                          ),
                         ),
                       ),
-                    ),
-                    IconButton(
-                      onPressed: _dismissHelpTooltip,
-                      icon: const Icon(Icons.close, color: Colors.white),
-                      iconSize: 18,
-                      visualDensity: VisualDensity.compact,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
-                        minWidth: 28,
-                        minHeight: 28,
+                      IconButton(
+                        onPressed: _dismissHelpTooltip,
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        iconSize: 18,
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 28,
+                          minHeight: 28,
+                        ),
+                        tooltip: 'Isara',
                       ),
-                      tooltip: 'Isara',
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -323,7 +326,7 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
             _dismissHelpTooltip();
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const HelpScreen()),
+              MaterialPageRoute(builder: (context) => const LegacyHelpScreen()),
             );
           },
         ),

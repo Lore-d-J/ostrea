@@ -26,7 +26,7 @@ class ScreenNavigationActions extends StatelessWidget {
           onHelpPressed ??
           () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const HelpScreen()),
+            MaterialPageRoute(builder: (context) => const LegacyHelpScreen()),
           ),
     );
 

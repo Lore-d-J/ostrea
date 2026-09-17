@@ -14,6 +14,10 @@ class ResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final normalizedLabel = prediction.label.toLowerCase();
+    final isUnidentified = normalizedLabel.contains('unidentified') ||
+        normalizedLabel.contains('di matukoy');
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -66,25 +70,29 @@ class ResultCard extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
           ),
-          const SizedBox(height: 12),
-          Text(
-            'Kumpiyansa: ${prediction.confidencePercentage}',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[700],
-                ),
-          ),
-          const SizedBox(height: 12),
+          if (!isUnidentified) ...[
+            const SizedBox(height: 12),
+            Text(
+              'Kumpiyansa: ${prediction.confidencePercentage}',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey[700],
+                  ),
+            ),
+            const SizedBox(height: 12),
+          ],
           Text(
             'Paglalarawan: ${prediction.description.isNotEmpty ? prediction.description : recommendation.message}',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5),
           ),
-          const SizedBox(height: 16),
-          LinearProgressIndicator(
-            value: prediction.confidence,
-            color: recommendation.badgeColor,
-            backgroundColor: recommendation.badgeColor.withValues(alpha: 0.15),
-            minHeight: 8,
-          ),
+          if (!isUnidentified) ...[
+            const SizedBox(height: 16),
+            LinearProgressIndicator(
+              value: prediction.confidence,
+              color: recommendation.badgeColor,
+              backgroundColor: recommendation.badgeColor.withValues(alpha: 0.15),
+              minHeight: 8,
+            ),
+          ],
         ],
       ),
     );

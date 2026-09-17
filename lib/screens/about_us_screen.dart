@@ -11,7 +11,7 @@ class AboutUsScreen extends StatelessWidget {
     ),
     _TeamMember(
       role: 'Technical Critic',
-      imageAsset: 'assets/images/about_technical_critic.jpg',
+      imageAsset: 'assets/images/about_technical_critic.png',
       name: 'Ms. Arvel O. Himor',
     ),
     _TeamMember(
