@@ -15,7 +15,8 @@ class ResultCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final normalizedLabel = prediction.label.toLowerCase();
-    final isUnidentified = normalizedLabel.contains('unidentified') ||
+    final isUnidentified =
+        normalizedLabel.contains('unidentified') ||
         normalizedLabel.contains('di matukoy');
 
     return Container(
@@ -39,9 +40,9 @@ class ResultCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Klase ng Resulta',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ),
               Container(
@@ -66,22 +67,45 @@ class ResultCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             prediction.label,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
           ),
-          if (!isUnidentified) ...[
-            const SizedBox(height: 12),
-            Text(
-              'Kumpiyansa: ${prediction.confidencePercentage}',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[700],
-                  ),
+          const SizedBox(height: 12),
+          Text(
+            'Kumpiyansa: ${prediction.confidencePercentage}',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.grey[700]),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: recommendation.badgeColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: recommendation.badgeColor.withValues(alpha: 0.35),
+              ),
             ),
-            const SizedBox(height: 12),
-          ],
+            child: Text(
+              'Kalagayan: ${prediction.condition}',
+              style: TextStyle(
+                color: recommendation.badgeColor,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
           Text(
             'Paglalarawan: ${prediction.description.isNotEmpty ? prediction.description : recommendation.message}',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Payo: ${prediction.recommendation.isNotEmpty ? prediction.recommendation : recommendation.message}',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5),
           ),
           if (!isUnidentified) ...[
@@ -89,7 +113,9 @@ class ResultCard extends StatelessWidget {
             LinearProgressIndicator(
               value: prediction.confidence,
               color: recommendation.badgeColor,
-              backgroundColor: recommendation.badgeColor.withValues(alpha: 0.15),
+              backgroundColor: recommendation.badgeColor.withValues(
+                alpha: 0.15,
+              ),
               minHeight: 8,
             ),
           ],

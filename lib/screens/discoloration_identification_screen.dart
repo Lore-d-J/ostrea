@@ -359,7 +359,7 @@ class _DiscolorationIdentificationScreenState
                     ResultCard(
                       prediction: _prediction!,
                       recommendation: Recommendation(
-                        warningLevel: _prediction!.label,
+                        warningLevel: _prediction!.condition,
                         message: _prediction!.message.isNotEmpty
                             ? _prediction!.message
                             : 'Handa na ang pagsusuri.',

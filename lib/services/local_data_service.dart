@@ -7,7 +7,7 @@ import 'package:ostrea/models/learning_module.dart';
 class LocalDataService {
   // Bump this whenever bundled content changes in a way that requires replacing
   // stale values stored from an older APK install.
-  static const int currentContentVersion = 7;
+  static const int currentContentVersion = 8;
 
   static const String _contentVersionKey = 'built_in_content_version';
   static const String _learningModulesKey = 'learning_modules';
@@ -582,7 +582,13 @@ class LocalDataService {
       DictionaryEntry(
         term: 'Talaba',
         definition:
-            'Isang uri ng kabibe na inaalagaan sa maalat o bahagyang maalat na tubig.',
+            'Karaniwang tawag: Talaba\n'
+            'Siyentipikong Pangalan: Magallana bilineata\n'
+            'Dating Pangalan: Crassostrea iredalei\n'
+            'Uri: Philippine cupped/slipper-shaped oyster\n'
+            'Sa Pilipinas: Ito ay isang mahalagang uri ng talaba na inaalagaan at pinapalaki sa Pilipinas.\n\n'
+            'Maikling paliwanag:\n'
+            'Ang Magallana bilineata ay isang uri ng talaba na makikita at inaalagaan sa Pilipinas.',
         category: 'biology',
         imageAsset: 'assets/images/dictionary/talaba.jpg',
       ),

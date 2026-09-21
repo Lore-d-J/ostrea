@@ -11,7 +11,7 @@ void main() {
     badgeColor: Color(0xFF546E7A),
   );
 
-  testWidgets('hides confidence for unidentified results', (tester) async {
+  testWidgets('shows confidence for unidentified results', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
@@ -20,6 +20,8 @@ void main() {
               label: 'Unidentified/Di Matukoy',
               confidence: 0.42,
               description: 'Hindi makilala ang kulay ng talaba.',
+              condition: 'Hindi Matukoy',
+              recommendation: 'Hindi malinaw ang resulta.',
             ),
             recommendation: recommendation,
           ),
@@ -27,7 +29,7 @@ void main() {
       ),
     );
 
-    expect(find.textContaining('Kumpiyansa:'), findsNothing);
+    expect(find.text('Kumpiyansa: 42.0%'), findsOneWidget);
     expect(find.byType(LinearProgressIndicator), findsNothing);
   });
 
@@ -40,6 +42,8 @@ void main() {
               label: 'Normal',
               confidence: 0.95,
               description: 'Normal ang kulay ng talaba.',
+              condition: 'Mabuti',
+              recommendation: 'Lutuin nang mabuti bago kainin.',
             ),
             recommendation: recommendation,
           ),

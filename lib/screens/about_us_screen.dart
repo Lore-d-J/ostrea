@@ -21,7 +21,7 @@ class AboutUsScreen extends StatelessWidget {
     ),
     _TeamMember(
       role: 'Developer',
-      imageAsset: 'assets/images/about_developer_2.jpg',
+      imageAsset: 'assets/images/about_developer_2.png',
       name: 'John Erol G. Tambal',
     ),
     _TeamMember(

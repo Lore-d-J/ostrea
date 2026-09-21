@@ -12,6 +12,8 @@ void main() {
       expect(result.label, 'Unidentified/Di Matukoy');
       expect(result.confidence, 0.79);
       expect(result.message, contains('Hindi makilala'));
+      expect(result.condition, 'Hindi Matukoy');
+      expect(result.recommendation, contains('Hindi malinaw ang resulta'));
     });
 
     test('keeps exactly 80 percent confidence identified', () {
@@ -21,6 +23,7 @@ void main() {
       );
 
       expect(result.label, 'Normal');
+      expect(result.condition, 'Mabuti');
     });
 
     test('keeps an unidentified result unidentified at high confidence', () {
@@ -31,6 +34,7 @@ void main() {
 
       expect(result.label, 'Unidentified/Di Matukoy');
       expect(result.confidence, 0.95);
+      expect(result.condition, 'Hindi Matukoy');
     });
 
     test('maps normal label to the healthy description', () {
@@ -40,8 +44,9 @@ void main() {
       );
 
       expect(result.label, 'Normal');
-      expect(result.description.toLowerCase(), contains('cream'));
-      expect(result.message.toLowerCase(), contains('healthy'));
+      expect(result.description, contains('Normal ang kulay'));
+      expect(result.condition, 'Mabuti');
+      expect(result.recommendation, contains('Lutuin nang mabuti'));
     });
 
     test('maps yellowish and greenish labels to the right descriptions', () {
@@ -54,12 +59,14 @@ void main() {
         confidence: 0.91,
       );
 
-      expect(yellowish.label, 'Yellowish');
-      expect(yellowish.description.toLowerCase(), contains('yellow tint'));
-      expect(greenish.label, 'Greenish');
+      expect(yellowish.label, 'Yellowish/Naninilaw');
+      expect(yellowish.condition, 'Hindi Mabuti');
+      expect(yellowish.recommendation, contains('May pagbabago sa kulay'));
+      expect(greenish.label, 'Greenish/Luntiang kulay');
+      expect(greenish.condition, 'Hindi Mabuti');
       expect(
-        greenish.description.toLowerCase(),
-        contains('green or olive-green'),
+        greenish.recommendation,
+        contains('May kapansin-pansing pagbabago'),
       );
     });
   });

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ostrea/models/learning_module.dart';
 import 'package:ostrea/services/local_data_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DictionaryScreen extends StatefulWidget {
   const DictionaryScreen({super.key});
@@ -284,6 +285,13 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                                               fit: BoxFit.contain,
                                             ),
                                           ),
+                                          if (_imageSource(entry) != null) ...[
+                                            const SizedBox(height: 8),
+                                            _buildImageSource(
+                                              context,
+                                              _imageSource(entry)!,
+                                            ),
+                                          ],
                                           const SizedBox(height: 16),
                                         ],
                                         Text(
@@ -296,13 +304,7 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                                           ),
                                         ),
                                         SizedBox(height: 8),
-                                        Text(
-                                          entry.definition,
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            height: 1.5,
-                                          ),
-                                        ),
+                                        _buildDefinition(entry),
                                       ],
                                     ),
                                   ),
@@ -314,6 +316,117 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                 ),
               ],
             ),
+    );
+  }
+
+  Widget _buildDefinition(DictionaryEntry entry) {
+    const textStyle = TextStyle(fontSize: 14, height: 1.5);
+
+    if (entry.term != 'Talaba') {
+      return Text(entry.definition, style: textStyle);
+    }
+
+    return Text.rich(
+      TextSpan(
+        style: textStyle,
+        children: const [
+          TextSpan(
+            text: 'Karaniwang tawag: ',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          TextSpan(text: 'Talaba\n'),
+          TextSpan(
+            text: 'Siyentipikong Pangalan: ',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          TextSpan(
+            text: 'Magallana bilineata',
+            style: TextStyle(fontStyle: FontStyle.italic),
+          ),
+          TextSpan(text: '\n'),
+          TextSpan(
+            text: 'Dating Pangalan: ',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          TextSpan(
+            text: 'Crassostrea iredalei',
+            style: TextStyle(fontStyle: FontStyle.italic),
+          ),
+          TextSpan(text: '\n'),
+          TextSpan(
+            text: 'Uri: ',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          TextSpan(text: 'Philippine cupped/slipper-shaped oyster\n'),
+          TextSpan(
+            text: 'Sa Pilipinas: ',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          TextSpan(
+            text:
+                'Ito ay isang mahalagang uri ng talaba na inaalagaan at pinapalaki sa Pilipinas.\n\n',
+          ),
+          TextSpan(
+            text: 'Maikling paliwanag:\n',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          TextSpan(text: 'Ang '),
+          TextSpan(
+            text: 'Magallana bilineata',
+            style: TextStyle(fontStyle: FontStyle.italic),
+          ),
+          TextSpan(
+            text:
+                ' ay isang uri ng talaba na makikita at inaalagaan sa Pilipinas.',
+          ),
+        ],
+      ),
+    );
+  }
+
+  ({String label, Uri url})? _imageSource(DictionaryEntry entry) {
+    switch (entry.term) {
+      case 'Espongha':
+        return (
+          label: 'Source: Oysters Etcetera (2013)',
+          url: Uri.parse(
+            'https://oystersetcetera.wordpress.com/2013/04/09/holes-in-old-oyster-shells-1-sponge-borings/',
+          ),
+        );
+      case 'Hasang':
+        return (
+          label: 'Source: MD Sea Grant',
+          url: Uri.parse(
+            'https://www.mdseagrant.org/interactive_lessons/oysters/labs/internal_anatomy_lab.html',
+          ),
+        );
+      case 'Red Tide':
+        return (
+          label: 'Source: Philstar.com (2019)',
+          url: Uri.parse(
+            'https://www.philstar.com/nation/2019/01/20/1886478/5-pangasinan-areas-red-tide-free',
+          ),
+        );
+      default:
+        return null;
+    }
+  }
+
+  Widget _buildImageSource(
+    BuildContext context,
+    ({String label, Uri url}) source,
+  ) {
+    return InkWell(
+      onTap: () => launchUrl(source.url),
+      child: Text(
+        source.label,
+        softWrap: true,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.primary,
+          fontSize: 12,
+          decoration: TextDecoration.underline,
+        ),
+      ),
     );
   }
 }

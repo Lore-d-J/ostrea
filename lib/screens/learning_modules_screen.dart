@@ -322,6 +322,7 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
       actions: [
         ScreenNavigationActions(
           helpLayerLink: _helpButtonLayerLink,
+          verticalOffset: 10,
           onHelpPressed: () {
             _dismissHelpTooltip();
             Navigator.push(
