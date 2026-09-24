@@ -11,7 +11,7 @@ void main() {
     badgeColor: Color(0xFF546E7A),
   );
 
-  testWidgets('shows confidence for unidentified results', (tester) async {
+  testWidgets('hides confidence for unidentified results', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
@@ -29,7 +29,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Kumpiyansa: 42.0%'), findsOneWidget);
+    expect(find.text('Kumpiyansa: 42.0%'), findsNothing);
     expect(find.byType(LinearProgressIndicator), findsNothing);
   });
 

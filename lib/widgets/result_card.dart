@@ -72,12 +72,13 @@ class ResultCard extends StatelessWidget {
             ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 12),
-          Text(
-            'Kumpiyansa: ${prediction.confidencePercentage}',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: Colors.grey[700]),
-          ),
+          if (!isUnidentified)
+            Text(
+              'Kumpiyansa: ${prediction.confidencePercentage}',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[700]),
+            ),
           const SizedBox(height: 16),
           Container(
             width: double.infinity,
