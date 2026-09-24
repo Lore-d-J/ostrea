@@ -24,7 +24,6 @@ class _DiscolorationIdentificationScreenState
   PredictionResult? _prediction;
   bool _isProcessing = false;
   String? _errorMessage;
-  bool _showAnalyzeButton = false;
 
   @override
   void initState() {
@@ -40,8 +39,9 @@ class _DiscolorationIdentificationScreenState
           _selectedImage = File(pickedFile.path);
           _prediction = null;
           _errorMessage = null;
-          _showAnalyzeButton = true;
         });
+
+        await _identifyDisease();
       }
     } catch (e) {
       setState(() {
@@ -65,7 +65,6 @@ class _DiscolorationIdentificationScreenState
       setState(() {
         _prediction = prediction;
         _isProcessing = false;
-        _showAnalyzeButton = false;
       });
     } catch (e) {
       setState(() {
@@ -277,48 +276,6 @@ class _DiscolorationIdentificationScreenState
                           ),
                         ],
                       ),
-                    ),
-                  ],
-
-                  if (_selectedImage != null && _showAnalyzeButton) ...[
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () {
-                              setState(() {
-                                _selectedImage = null;
-                                _prediction = null;
-                                _errorMessage = null;
-                                _showAnalyzeButton = false;
-                              });
-                            },
-                            icon: const Icon(Icons.refresh),
-                            label: const Text('Kumuha ulit'),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              side: BorderSide(color: oceanDeep),
-                              foregroundColor: oceanDeep,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: _selectedImage == null
-                                ? null
-                                : _identifyDisease,
-                            icon: const Icon(Icons.analytics),
-                            label: const Text('Suriin'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: oceanDeep,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
                   ],
 
