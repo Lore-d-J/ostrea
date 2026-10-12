@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/prediction_result.dart';
+import '../services/audio_playback_service.dart';
 import '../utils/recommendation_helper.dart';
+import 'audio_narration_button.dart';
+import 'audio_narration_text.dart';
 
-class ResultCard extends StatelessWidget {
+class ResultCard extends StatefulWidget {
   final PredictionResult prediction;
   final Recommendation recommendation;
 
@@ -13,7 +16,30 @@ class ResultCard extends StatelessWidget {
   });
 
   @override
+  State<ResultCard> createState() => _ResultCardState();
+}
+
+class _ResultCardState extends State<ResultCard> {
+  final AudioPlaybackService _audioService = AudioPlaybackService();
+
+  String _resultKey(String label) => label
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+      .replaceAll(RegExp(r'^_|_$'), '');
+
+  @override
+  void dispose() {
+    if (_audioService.activeAudioId?.startsWith('result:') ?? false) {
+      _audioService.stop();
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final prediction = widget.prediction;
+    final recommendation = widget.recommendation;
+    final resultKey = _resultKey(prediction.label);
     final normalizedLabel = prediction.label.toLowerCase();
     final isUnidentified =
         normalizedLabel.contains('unidentified') ||
@@ -72,13 +98,6 @@ class ResultCard extends StatelessWidget {
             ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 12),
-          if (!isUnidentified)
-            Text(
-              'Kumpiyansa: ${prediction.confidencePercentage}',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[700]),
-            ),
           const SizedBox(height: 16),
           Container(
             width: double.infinity,
@@ -100,13 +119,54 @@ class ResultCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Text(
-            'Paglalarawan: ${prediction.description.isNotEmpty ? prediction.description : recommendation.message}',
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Paglalarawan',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              AudioNarrationButton(
+                audioId: 'result:$resultKey:paglalarawan',
+                assetPath:
+                    'assets/audio/results/${resultKey}_paglalarawan.mp3',
+                tooltip: 'Pakinggan ang Paglalarawan',
+              ),
+            ],
+          ),
+          AudioNarrationText(
+            audioId: 'result:$resultKey:paglalarawan',
+            text: prediction.description.isNotEmpty
+                ? prediction.description
+                : recommendation.message,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5),
           ),
           const SizedBox(height: 12),
-          Text(
-            'Payo: ${prediction.recommendation.isNotEmpty ? prediction.recommendation : recommendation.message}',
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Payo',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              AudioNarrationButton(
+                audioId: 'result:$resultKey:payo',
+                assetPath: 'assets/audio/results/${resultKey}_payo.mp3',
+                tooltip: 'Pakinggan ang Payo',
+              ),
+            ],
+          ),
+          AudioNarrationText(
+            audioId: 'result:$resultKey:payo',
+            text: prediction.recommendation.isNotEmpty
+                ? prediction.recommendation
+                : recommendation.message,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5),
           ),
           if (!isUnidentified) ...[

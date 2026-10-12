@@ -8,6 +8,7 @@ import 'package:ostrea/services/audio_playback_service.dart';
 import 'package:ostrea/localization/app_strings.dart';
 import 'package:ostrea/screens/dictionary_screen.dart';
 import 'package:ostrea/widgets/audio_action_button.dart';
+import 'package:ostrea/widgets/audio_narration_text.dart';
 
 class LearningModuleScreen extends StatefulWidget {
   final LearningModule module;
@@ -325,24 +326,26 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (widget.module.imageAsset != null)
-              Container(
-                width: double.infinity,
-                height: 200,
-                margin: EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
-                  color: Colors.transparent,
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
-                  child: Image.asset(
-                    sectionImageAsset,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) => Image.asset(
-                      widget.module.imageAsset!,
-                      fit: BoxFit.contain,
-                    ),
+            Container(
+              width: double.infinity,
+              height: 200,
+              margin: EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                color: Colors.transparent,
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: Image.asset(
+                  sectionImageAsset,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) =>
+                      widget.module.imageAsset == null
+                      ? const SizedBox.shrink()
+                      : Image.asset(
+                          widget.module.imageAsset!,
+                          fit: BoxFit.contain,
+                        ),
                   ),
                 ),
               ),
@@ -395,8 +398,9 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
               ),
             ),
             SizedBox(height: 20),
-            Text(
-              widget.module.contentSections[index],
+            AudioNarrationText(
+              audioId: _audioId(index),
+              text: widget.module.contentSections[index],
               style: Theme.of(
                 context,
               ).textTheme.bodyLarge?.copyWith(height: 1.6),

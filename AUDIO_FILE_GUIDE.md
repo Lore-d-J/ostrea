@@ -24,6 +24,22 @@ assets/audio/
 └── guides/
 ```
 
+## Identification Result Audio
+
+Add one recorded MP3 for each result category and section in
+`assets/audio/results/`. The category name is the prediction label converted
+to lowercase ASCII words separated by underscores. For example, `Normal` uses
+`normal_paglalarawan.mp3` and `normal_payo.mp3`; `Unidentified/Di Matukoy` uses
+`unidentified_di_matukoy_paglalarawan.mp3` and
+`unidentified_di_matukoy_payo.mp3`.
+
+No Identification Results recordings or per-sentence timing maps are currently
+included in the repository. Until the corresponding files are added, the
+result speaker buttons report the missing asset and do not substitute another
+recording. Sentence highlighting uses the actual MP3 position and duration,
+with sentence length as an approximate timing weight; accurate word or
+sentence synchronization requires authored timing data for each recording.
+
 ## File Naming Convention
 
 ### For Module Audio Files

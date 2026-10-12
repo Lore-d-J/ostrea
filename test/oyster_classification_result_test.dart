@@ -6,20 +6,20 @@ void main() {
     test('maps low confidence to unidentified', () {
       final result = OysterResultHandler().buildResult(
         label: 'Normal',
-        confidence: 0.79,
+        confidence: 0.59,
       );
 
       expect(result.label, 'Unidentified/Di Matukoy');
-      expect(result.confidence, 0.79);
+      expect(result.confidence, 0.59);
       expect(result.message, contains('Hindi makilala'));
       expect(result.condition, 'Hindi Matukoy');
       expect(result.recommendation, contains('Hindi malinaw ang resulta'));
     });
 
-    test('keeps exactly 80 percent confidence identified', () {
+    test('keeps exactly 60 percent confidence identified', () {
       final result = OysterResultHandler().buildResult(
         label: 'Normal',
-        confidence: 0.80,
+        confidence: 0.60,
       );
 
       expect(result.label, 'Normal');

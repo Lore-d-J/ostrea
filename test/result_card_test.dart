@@ -11,7 +11,7 @@ void main() {
     badgeColor: Color(0xFF546E7A),
   );
 
-  testWidgets('hides confidence for unidentified results', (tester) async {
+  testWidgets('hides the confidence percentage for unidentified results', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
@@ -29,11 +29,13 @@ void main() {
       ),
     );
 
-    expect(find.text('Kumpiyansa: 42.0%'), findsNothing);
+    expect(find.textContaining('%'), findsNothing);
     expect(find.byType(LinearProgressIndicator), findsNothing);
+    expect(find.byTooltip('Pakinggan ang Paglalarawan'), findsOneWidget);
+    expect(find.byTooltip('Pakinggan ang Payo'), findsOneWidget);
   });
 
-  testWidgets('shows confidence for identified results', (tester) async {
+  testWidgets('hides the confidence percentage but keeps the indicator', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
@@ -51,7 +53,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Kumpiyansa: 95.0%'), findsOneWidget);
+    expect(find.textContaining('%'), findsNothing);
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
   });
 }

@@ -6,7 +6,8 @@ import 'package:ostrea/services/audio_playback_service.dart';
 import 'package:ostrea/services/local_data_service.dart';
 import 'package:ostrea/localization/app_strings.dart';
 import 'package:ostrea/widgets/audio_action_button.dart';
-import 'package:ostrea/screens/about_us_screen.dart';
+import 'package:ostrea/widgets/audio_narration_text.dart';
+import 'package:ostrea/utils/narration_sentence_timing.dart';
 import 'package:ostrea/screens/help_screen.dart';
 import 'package:ostrea/theme/app_theme.dart';
 import 'package:ostrea/widgets/screen_navigation_actions.dart';
@@ -324,6 +325,12 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
 
   Widget _buildGuideCard(TroubleshootingGuide guide, Color primaryColor) {
     final theme = Theme.of(context);
+    final narrationTimeline = buildTroubleshootingNarrationTimeline(
+      title: guide.title,
+      problem: guide.problem,
+      cause: guide.cause,
+      solutions: guide.solutions,
+    );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -348,8 +355,11 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
               color: _getSeverityColor(guide.severity),
             ),
           ),
-          title: Text(
-            guide.title,
+          title: AudioNarrationText(
+            audioId: 'guide:${guide.id}',
+            text: guide.title,
+            narrationText: narrationTimeline.transcript,
+            sentenceOffset: 0,
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
@@ -384,17 +394,6 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
                     ),
                     const SizedBox(height: 16),
                   ],
-                  const Text(
-                    'Ano ang problema?',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    guide.problem,
-                    style: TextStyle(color: Colors.grey[700], height: 1.4),
-                  ),
-
-                  const SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
@@ -419,15 +418,6 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
                     child: Divider(),
                   ),
 
-                  Text(
-                    AppStrings.cause,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                  ),
-                  Text(guide.cause, style: TextStyle(color: Colors.grey[700])),
-
                   const SizedBox(height: 16),
                   Text(
                     AppStrings.solutions,
@@ -438,7 +428,17 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ...guide.solutions.map((s) => _buildSolutionItem(s)),
+                  ...guide.solutions.asMap().entries.map((entry) {
+                    final solutionIndex = entry.key;
+                    final solution = entry.value;
+                    return _buildSolutionItem(
+                      solution,
+                      audioId: 'guide:${guide.id}',
+                      narrationText: narrationTimeline.transcript,
+                      sentenceOffset:
+                          narrationTimeline.sectionOffsets[solutionIndex],
+                    );
+                  }),
                 ],
               ),
             ),
@@ -448,7 +448,12 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
     );
   }
 
-  Widget _buildSolutionItem(String text) {
+  Widget _buildSolutionItem(
+    String text, {
+    required String audioId,
+    required String narrationText,
+    required int sentenceOffset,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -461,8 +466,11 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              text,
+            child: AudioNarrationText(
+              audioId: audioId,
+              text: text,
+              narrationText: narrationText,
+              sentenceOffset: sentenceOffset,
               style: const TextStyle(fontSize: 14, height: 1.3),
             ),
           ),

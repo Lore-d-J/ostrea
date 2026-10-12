@@ -1,7 +1,7 @@
 import '../models/prediction_result.dart';
 
 class OysterResultHandler {
-  static const double confidenceThreshold = 0.80;
+  static const double confidenceThreshold = 0.60;
   static const String driedOysterReminder =
       'Kung mukhang natuyo ang laman, maaaring matagal nang patay o panis na ang talaba. Huwag itong kainin.';
   static const String _normalRecommendation =

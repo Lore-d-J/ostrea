@@ -98,6 +98,7 @@ flutter:
     - assets/images/modules/
     - assets/images/dictionary/
     - assets/audio/
+    - assets/audio/results/
     - assets/audio/modules/module_001/
     - assets/audio/modules/module_002/
     - assets/audio/modules/module_003/

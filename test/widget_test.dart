@@ -13,6 +13,9 @@ import 'package:image/image.dart' as img;
 
 import 'package:ostrea/main.dart';
 import 'package:ostrea/localization/app_strings_helper.dart';
+import 'package:ostrea/models/learning_module.dart';
+import 'package:ostrea/screens/about_us_screen.dart';
+import 'package:ostrea/screens/learning_module_screen.dart';
 import 'package:ostrea/services/image_classifier_service.dart';
 import 'package:ostrea/theme/app_theme.dart';
 
@@ -44,5 +47,50 @@ void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     await tester.pumpWidget(const OstreaApp());
     expect(find.text(AppStringsHelper.homeTitle), findsOneWidget);
+  });
+
+  testWidgets('module section image renders without a fallback image', (
+    WidgetTester tester,
+  ) async {
+    final module = LearningModule(
+      id: 'module6',
+      title: 'Pag-alis ng Espongha',
+      description: 'Paano alisin ang espongha sa ibabaw ng talaba?',
+      contentSections: const ['Suriin ang mga talaba.'],
+      imageAsset: null,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(home: LearningModuleScreen(module: module)),
+    );
+
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Image &&
+            widget.image is AssetImage &&
+            (widget.image as AssetImage).assetName ==
+                'assets/images/modules/module6_section1.png',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('About Us shows the app developer team', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(1000, 5000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      const MaterialApp(home: AboutUsScreen()),
+    );
+
+    expect(find.text('Mga Developer ng App'), findsOneWidget);
+    expect(find.text('Janelle A. Antipala'), findsOneWidget);
+    expect(find.text('John Erol G. Tambal'), findsOneWidget);
+    expect(find.text('Marilyn S. Bujos'), findsOneWidget);
   });
 }

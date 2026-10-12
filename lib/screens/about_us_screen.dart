@@ -8,26 +8,31 @@ class AboutUsScreen extends StatelessWidget {
       role: 'Technical Adviser',
       imageAsset: 'assets/images/about_technical_adviser.jpg',
       name: 'Dr. Michelle C. Tanega',
+      isAppDeveloper: false,
     ),
     _TeamMember(
       role: 'Technical Critic',
       imageAsset: 'assets/images/about_technical_critic.png',
       name: 'Ms. Arvel O. Himor',
+      isAppDeveloper: false,
     ),
     _TeamMember(
-      role: 'Developer',
+      role: 'Document Researcher',
       imageAsset: 'assets/images/about_developer_1.jpg',
       name: 'Janelle A. Antipala',
+      isAppDeveloper: true,
     ),
     _TeamMember(
-      role: 'Developer',
+      role: 'Programmer',
       imageAsset: 'assets/images/about_developer_2.png',
       name: 'John Erol G. Tambal',
+      isAppDeveloper: true,
     ),
     _TeamMember(
-      role: 'Developer',
+      role: 'Multimedia Specialist',
       imageAsset: 'assets/images/about_developer_3.jpg',
       name: 'Marilyn S. Bujos',
+      isAppDeveloper: true,
     ),
   ];
 
@@ -75,7 +80,7 @@ class AboutUsScreen extends StatelessWidget {
           Text('Mga Developer ng App', style: theme.textTheme.titleMedium),
           const SizedBox(height: 10),
           ..._teamMembers
-              .where((member) => member.role == 'Developer')
+              .where((member) => member.isAppDeveloper)
               .map((member) => _buildMemberCard(context, member)),
           _buildSectionHeading(context, 'Technical Adviser'),
           _buildMemberCard(context, _teamMembers[0]),
@@ -199,10 +204,12 @@ class _TeamMember {
   final String role;
   final String imageAsset;
   final String name;
+  final bool isAppDeveloper;
 
   const _TeamMember({
     required this.role,
     required this.imageAsset,
     required this.name,
+    required this.isAppDeveloper,
   });
 }

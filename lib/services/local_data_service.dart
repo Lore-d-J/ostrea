@@ -7,7 +7,7 @@ import 'package:ostrea/models/learning_module.dart';
 class LocalDataService {
   // Bump this whenever bundled content changes in a way that requires replacing
   // stale values stored from an older APK install.
-  static const int currentContentVersion = 8;
+  static const int currentContentVersion = 10;
 
   static const String _contentVersionKey = 'built_in_content_version';
   static const String _learningModulesKey = 'learning_modules';
