@@ -43,7 +43,7 @@ dependencies:
   image: ^4.1.1
   
   # ML Inference for oyster classification
-  tflite_flutter: ^0.10.4
+  tflite_flutter: ^0.12.1
 
   # Audio playback for custom MP3 narration
   audioplayers: ^6.6.0
