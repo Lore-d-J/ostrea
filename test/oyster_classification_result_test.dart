@@ -6,12 +6,35 @@ void main() {
     test('maps low confidence to unidentified', () {
       final result = OysterResultHandler().buildResult(
         label: 'Normal',
-        confidence: 0.65,
+        confidence: 0.59,
       );
 
-      expect(result.label, 'Unidentified');
-      expect(result.confidence, 0.65);
-      expect(result.message, contains('clearer image'));
+      expect(result.label, 'Unidentified/Di Matukoy');
+      expect(result.confidence, 0.59);
+      expect(result.message, contains('Hindi makilala'));
+      expect(result.condition, 'Hindi Matukoy');
+      expect(result.recommendation, contains('Hindi malinaw ang resulta'));
+    });
+
+    test('keeps exactly 60 percent confidence identified', () {
+      final result = OysterResultHandler().buildResult(
+        label: 'Normal',
+        confidence: 0.60,
+      );
+
+      expect(result.label, 'Normal');
+      expect(result.condition, 'Mabuti');
+    });
+
+    test('keeps an unidentified result unidentified at high confidence', () {
+      final result = OysterResultHandler().buildResult(
+        label: 'Unidentified',
+        confidence: 0.95,
+      );
+
+      expect(result.label, 'Unidentified/Di Matukoy');
+      expect(result.confidence, 0.95);
+      expect(result.condition, 'Hindi Matukoy');
     });
 
     test('maps normal label to the healthy description', () {
@@ -21,8 +44,9 @@ void main() {
       );
 
       expect(result.label, 'Normal');
-      expect(result.description.toLowerCase(), contains('cream'));
-      expect(result.message.toLowerCase(), contains('healthy'));
+      expect(result.description, contains('Normal ang kulay'));
+      expect(result.condition, 'Mabuti');
+      expect(result.recommendation, contains('Lutuin nang mabuti'));
     });
 
     test('maps yellowish and greenish labels to the right descriptions', () {
@@ -35,10 +59,15 @@ void main() {
         confidence: 0.91,
       );
 
-      expect(yellowish.label, 'Yellowish');
-      expect(yellowish.description.toLowerCase(), contains('yellow tint'));
-      expect(greenish.label, 'Greenish');
-      expect(greenish.description.toLowerCase(), contains('green or olive-green'));
+      expect(yellowish.label, 'Yellowish/Naninilaw');
+      expect(yellowish.condition, 'Hindi Mabuti');
+      expect(yellowish.recommendation, contains('May pagbabago sa kulay'));
+      expect(greenish.label, 'Greenish/Luntiang kulay');
+      expect(greenish.condition, 'Hindi Mabuti');
+      expect(
+        greenish.recommendation,
+        contains('May kapansin-pansing pagbabago'),
+      );
     });
   });
 }

@@ -49,4 +49,14 @@ void main() {
     expect(prefs.getString('dictionary_entries'), isNotNull);
     expect(prefs.getInt('built_in_content_version'), LocalDataService.currentContentVersion);
   });
+
+  test('default troubleshooting guides contain their solution content', () async {
+    final guides = await LocalDataService().getTroubleshootingGuides();
+
+    for (final guide in guides) {
+      expect(guide.solutions, isNotEmpty, reason: guide.id);
+    }
+
+    expect(guides[3].solutions, hasLength(3));
+  });
 }

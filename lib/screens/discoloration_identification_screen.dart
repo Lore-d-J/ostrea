@@ -5,6 +5,7 @@ import 'package:ostrea/services/image_classifier_service.dart';
 import 'package:ostrea/models/prediction_result.dart';
 import 'package:ostrea/utils/recommendation_helper.dart';
 import 'package:ostrea/widgets/result_card.dart';
+import 'package:ostrea/widgets/screen_navigation_actions.dart';
 
 class DiscolorationIdentificationScreen extends StatefulWidget {
   const DiscolorationIdentificationScreen({super.key});
@@ -23,7 +24,6 @@ class _DiscolorationIdentificationScreenState
   PredictionResult? _prediction;
   bool _isProcessing = false;
   String? _errorMessage;
-  bool _showAnalyzeButton = false;
 
   @override
   void initState() {
@@ -39,8 +39,9 @@ class _DiscolorationIdentificationScreenState
           _selectedImage = File(pickedFile.path);
           _prediction = null;
           _errorMessage = null;
-          _showAnalyzeButton = true;
         });
+
+        await _identifyDisease();
       }
     } catch (e) {
       setState(() {
@@ -64,7 +65,6 @@ class _DiscolorationIdentificationScreenState
       setState(() {
         _prediction = prediction;
         _isProcessing = false;
-        _showAnalyzeButton = false;
       });
     } catch (e) {
       setState(() {
@@ -279,48 +279,6 @@ class _DiscolorationIdentificationScreenState
                     ),
                   ],
 
-                  if (_selectedImage != null && _showAnalyzeButton) ...[
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () {
-                              setState(() {
-                                _selectedImage = null;
-                                _prediction = null;
-                                _errorMessage = null;
-                                _showAnalyzeButton = false;
-                              });
-                            },
-                            icon: const Icon(Icons.refresh),
-                            label: const Text('Kumuha ulit'),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              side: BorderSide(color: oceanDeep),
-                              foregroundColor: oceanDeep,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: _selectedImage == null
-                                ? null
-                                : _identifyDisease,
-                            icon: const Icon(Icons.analytics),
-                            label: const Text('Suriin'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: oceanDeep,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-
                   if (_isProcessing) ...[
                     const SizedBox(height: 20),
                     Container(
@@ -358,7 +316,7 @@ class _DiscolorationIdentificationScreenState
                     ResultCard(
                       prediction: _prediction!,
                       recommendation: Recommendation(
-                        warningLevel: _prediction!.label,
+                        warningLevel: _prediction!.condition,
                         message: _prediction!.message.isNotEmpty
                             ? _prediction!.message
                             : 'Handa na ang pagsusuri.',
@@ -427,9 +385,15 @@ class _DiscolorationIdentificationScreenState
       backgroundColor: primaryColor,
       flexibleSpace: FlexibleSpaceBar(
         centerTitle: false,
-        titlePadding: const EdgeInsetsDirectional.only(start: 20, bottom: 16),
+        titlePadding: const EdgeInsetsDirectional.only(
+          start: 20,
+          end: 160,
+          bottom: 16,
+        ),
         title: Text(
-          'Pagsusuri sa Kulay ng Talaba',
+          'Pagsusuri ng Kulay',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             fontWeight: FontWeight.w900,
             fontSize: 18,
@@ -459,6 +423,7 @@ class _DiscolorationIdentificationScreenState
           ),
         ),
       ),
+      actions: const [ScreenNavigationActions()],
     );
   }
 

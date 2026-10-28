@@ -10,6 +10,7 @@ import 'package:ostrea/screens/dictionary_screen.dart';
 import 'package:ostrea/screens/help_screen.dart';
 import 'package:ostrea/screens/about_us_screen.dart';
 import 'package:ostrea/widgets/audio_action_button.dart';
+import 'package:ostrea/widgets/audio_narration_text.dart';
 
 class LearningModuleScreen extends StatefulWidget {
   final LearningModule module;
@@ -328,6 +329,9 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
   }
 
   Widget _buildLessonPage(int index) {
+    final sectionImageAsset =
+        'assets/images/modules/${widget.module.id}_section${index + 1}.png';
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -346,20 +350,26 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (widget.module.imageAsset != null)
-              Container(
-                width: double.infinity,
-                height: 200,
-                margin: EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
-                  color: Colors.grey[200],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
-                  child: Image.asset(
-                    widget.module.imageAsset!,
-                    fit: BoxFit.cover,
+            Container(
+              width: double.infinity,
+              height: 200,
+              margin: EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                color: Colors.transparent,
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: Image.asset(
+                  sectionImageAsset,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) =>
+                      widget.module.imageAsset == null
+                      ? const SizedBox.shrink()
+                      : Image.asset(
+                          widget.module.imageAsset!,
+                          fit: BoxFit.contain,
+                        ),
                   ),
                 ),
               ),
@@ -412,16 +422,23 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
               ),
             ),
             SizedBox(height: 20),
-            Text(
-              widget.module.contentSections[index],
+            AudioNarrationText(
+              audioId: _audioId(index),
+              text: widget.module.contentSections[index],
               style: Theme.of(
                 context,
               ).textTheme.bodyLarge?.copyWith(height: 1.6),
             ),
+<<<<<<< HEAD
             if (widget.module.sourceUrl != null) ...[
               const SizedBox(height: 20),
               _buildSourceCitation(),
             ],
+=======
+            const SizedBox(height: 20),
+            _buildSourceCitation(),
+            SizedBox(height: 24),
+>>>>>>> bedbc385b2274f31d66f0f09db9c04823b2af763
           ],
         ),
       ),
@@ -449,23 +466,25 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
             widget.module.sourceTitle ??
                 'Bureau of Fisheries and Aquatic Resources (BFAR)',
           ),
-          const SizedBox(height: 8),
-          TextButton.icon(
-            onPressed: () async {
-              final opened = await launchUrl(
-                Uri.parse(widget.module.sourceUrl!),
-              );
-              if (!opened && mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Hindi mabuksan ang sanggunian.'),
-                  ),
+          if (widget.module.sourceUrl != null) ...[
+            const SizedBox(height: 8),
+            TextButton.icon(
+              onPressed: () async {
+                final opened = await launchUrl(
+                  Uri.parse(widget.module.sourceUrl!),
                 );
-              }
-            },
-            icon: const Icon(Icons.open_in_new),
-            label: const Text('Tingnan ang Sanggunian'),
-          ),
+                if (!opened && mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Hindi mabuksan ang sanggunian.'),
+                    ),
+                  );
+                }
+              },
+              icon: const Icon(Icons.open_in_new),
+              label: const Text('Tingnan ang Sanggunian'),
+            ),
+          ],
         ],
       ),
     );

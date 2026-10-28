@@ -5,8 +5,12 @@ import 'package:ostrea/models/learning_module.dart';
 import 'package:ostrea/services/audio_playback_service.dart';
 import 'package:ostrea/services/local_data_service.dart';
 import 'package:ostrea/localization/app_strings.dart';
-import 'package:ostrea/screens/dictionary_screen.dart';
 import 'package:ostrea/widgets/audio_action_button.dart';
+import 'package:ostrea/widgets/audio_narration_text.dart';
+import 'package:ostrea/utils/narration_sentence_timing.dart';
+import 'package:ostrea/screens/help_screen.dart';
+import 'package:ostrea/theme/app_theme.dart';
+import 'package:ostrea/widgets/screen_navigation_actions.dart';
 
 class TroubleshootingScreen extends StatefulWidget {
   const TroubleshootingScreen({super.key});
@@ -121,7 +125,6 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
                 SliverToBoxAdapter(
                   child: Column(
                     children: [
-                      _buildHeader(oceanDeep, oceanLight),
                       _buildFilterSection(oceanDeep, oceanLight),
                     ],
                   ),
@@ -163,17 +166,17 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
 
   Widget _buildSliverAppBar(BuildContext context, Color primaryColor) {
     return SliverAppBar(
-      expandedHeight: 48.0,
-      toolbarHeight: 48.0,
+      expandedHeight: 110.0,
+      toolbarHeight: 60.0,
       pinned: true,
       elevation: 0,
       stretch: true,
       backgroundColor: primaryColor,
       flexibleSpace: FlexibleSpaceBar(
         centerTitle: false,
-        titlePadding: const EdgeInsetsDirectional.only(start: 20, bottom: 16),
+        titlePadding: const EdgeInsetsDirectional.only(start: 20, bottom: 65),
         title: const Text(
-          'Gabay sa Problema',
+          'Problema at Solusyon',
           style: TextStyle(
             fontWeight: FontWeight.w900,
             fontSize: 18,
@@ -203,14 +206,18 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
           ),
         ),
       ),
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(60),
+        child: _buildHeader(primaryColor, const Color(0xFF83C5BE)),
+      ),
       actions: [
-        IconButton(
-          icon: const Icon(Icons.book_outlined, color: Colors.white),
-          onPressed: () {
+        ScreenNavigationActions(
+          verticalOffset: 10,
+          onHelpPressed: () {
             _audioService.stop();
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const DictionaryScreen()),
+              MaterialPageRoute(builder: (context) => const LegacyHelpScreen()),
             );
           },
         ),
@@ -219,32 +226,46 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
   }
 
   Widget _buildHeader(Color primaryColor, Color accentColor) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: primaryColor,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: AppTheme.oceanFoam,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: primaryColor.withValues(alpha: 0.10),
+              blurRadius: 18,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
-      ),
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 25),
-      child: TextField(
-        onChanged: (val) {
-          _searchQuery = val;
-          _applyFilters();
-        },
-        decoration: InputDecoration(
-          hintText: 'Search...',
-          hintStyle: TextStyle(color: Colors.grey[400]),
-          prefixIcon: Icon(Icons.search, color: primaryColor),
-          fillColor: Colors.white,
-          filled: true,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide.none,
+        child: TextField(
+          onChanged: (val) {
+            _searchQuery = val;
+            _applyFilters();
+          },
+          decoration: InputDecoration(
+            hintText: 'Search...',
+            hintStyle: TextStyle(color: Colors.grey[400]),
+            prefixIcon: Icon(Icons.search, color: primaryColor),
+            fillColor: Colors.white,
+            filled: true,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(vertical: 15),
           ),
-          contentPadding: const EdgeInsets.symmetric(vertical: 15),
         ),
       ),
     );
@@ -304,6 +325,12 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
 
   Widget _buildGuideCard(TroubleshootingGuide guide, Color primaryColor) {
     final theme = Theme.of(context);
+    final narrationTimeline = buildTroubleshootingNarrationTimeline(
+      title: guide.title,
+      problem: guide.problem,
+      cause: guide.cause,
+      solutions: guide.solutions,
+    );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -328,8 +355,11 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
               color: _getSeverityColor(guide.severity),
             ),
           ),
-          title: Text(
-            guide.title,
+          title: AudioNarrationText(
+            audioId: 'guide:${guide.id}',
+            text: guide.title,
+            narrationText: narrationTimeline.transcript,
+            sentenceOffset: 0,
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
@@ -350,17 +380,20 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Ano ang problema?',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    guide.problem,
-                    style: TextStyle(color: Colors.grey[700], height: 1.4),
-                  ),
-
-                  const SizedBox(height: 16),
+                  if (guide.imageAsset != null) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.asset(
+                        guide.imageAsset!,
+                        width: double.infinity,
+                        height: 190,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const SizedBox.shrink(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   Row(
                     children: [
                       Expanded(
@@ -385,15 +418,6 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
                     child: Divider(),
                   ),
 
-                  Text(
-                    AppStrings.cause,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                  ),
-                  Text(guide.cause, style: TextStyle(color: Colors.grey[700])),
-
                   const SizedBox(height: 16),
                   Text(
                     AppStrings.solutions,
@@ -404,7 +428,17 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ...guide.solutions.map((s) => _buildSolutionItem(s)),
+                  ...guide.solutions.asMap().entries.map((entry) {
+                    final solutionIndex = entry.key;
+                    final solution = entry.value;
+                    return _buildSolutionItem(
+                      solution,
+                      audioId: 'guide:${guide.id}',
+                      narrationText: narrationTimeline.transcript,
+                      sentenceOffset:
+                          narrationTimeline.sectionOffsets[solutionIndex],
+                    );
+                  }),
                 ],
               ),
             ),
@@ -414,7 +448,12 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
     );
   }
 
-  Widget _buildSolutionItem(String text) {
+  Widget _buildSolutionItem(
+    String text, {
+    required String audioId,
+    required String narrationText,
+    required int sentenceOffset,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -427,8 +466,11 @@ class _TroubleshootingScreenState extends State<TroubleshootingScreen> {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              text,
+            child: AudioNarrationText(
+              audioId: audioId,
+              text: text,
+              narrationText: narrationText,
+              sentenceOffset: sentenceOffset,
               style: const TextStyle(fontSize: 14, height: 1.3),
             ),
           ),
