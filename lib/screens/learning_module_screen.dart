@@ -7,6 +7,8 @@ import 'package:ostrea/services/local_storage_service.dart';
 import 'package:ostrea/services/audio_playback_service.dart';
 import 'package:ostrea/localization/app_strings.dart';
 import 'package:ostrea/screens/dictionary_screen.dart';
+import 'package:ostrea/screens/help_screen.dart';
+import 'package:ostrea/screens/about_us_screen.dart';
 import 'package:ostrea/widgets/audio_action_button.dart';
 
 class LearningModuleScreen extends StatefulWidget {
@@ -125,6 +127,28 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
                 MaterialPageRoute(
                   builder: (context) => const DictionaryScreen(),
                 ),
+              );
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.help_outline),
+            tooltip: 'Tulong',
+            onPressed: () {
+              _stopSpeaking();
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HelpScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.info_outline),
+            tooltip: 'Tungkol sa Amin',
+            onPressed: () {
+              _stopSpeaking();
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AboutUsScreen()),
               );
             },
           ),
@@ -398,46 +422,6 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
               const SizedBox(height: 20),
               _buildSourceCitation(),
             ],
-            SizedBox(height: 24),
-            Container(
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.green[50],
-                border: Border(left: BorderSide(color: Colors.green, width: 4)),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.green.withOpacity(0.1),
-                    blurRadius: 15,
-                    offset: Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.lightbulb, color: Colors.green[700], size: 20),
-                      SizedBox(width: 8),
-                      Text(
-                        'Pangunahing Punto',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green[700],
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Tandaan ang pangunahing punto mula sa seksyong ito para sa mas mahusay na pagsasanay sa oyster.',
-                    style: TextStyle(color: Colors.green[600]),
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
       ),
