@@ -6,12 +6,6 @@ import 'package:ostrea/models/learning_module.dart';
 import 'package:ostrea/screens/learning_module_screen.dart';
 import 'package:ostrea/services/local_storage_service.dart';
 import 'package:ostrea/services/local_data_service.dart';
-<<<<<<< HEAD
-import 'package:ostrea/screens/dictionary_screen.dart';
-import 'package:ostrea/screens/help_screen.dart';
-import 'package:ostrea/screens/about_us_screen.dart';
-=======
->>>>>>> bedbc385b2274f31d66f0f09db9c04823b2af763
 import 'package:ostrea/localization/app_strings.dart';
 import 'package:ostrea/screens/about_us_screen.dart';
 import 'package:ostrea/screens/help_screen.dart';
@@ -336,22 +330,6 @@ class _LearningModulesScreenState extends State<LearningModulesScreen> {
               MaterialPageRoute(builder: (context) => const LegacyHelpScreen()),
             );
           },
-        ),
-        IconButton(
-          icon: const Icon(Icons.help_outline, color: Colors.white),
-          tooltip: 'Tulong',
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const HelpScreen()),
-          ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.info_outline, color: Colors.white),
-          tooltip: 'Tungkol sa Amin',
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AboutUsScreen()),
-          ),
         ),
       ],
     );

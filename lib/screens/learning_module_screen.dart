@@ -7,8 +7,6 @@ import 'package:ostrea/services/local_storage_service.dart';
 import 'package:ostrea/services/audio_playback_service.dart';
 import 'package:ostrea/localization/app_strings.dart';
 import 'package:ostrea/screens/dictionary_screen.dart';
-import 'package:ostrea/screens/help_screen.dart';
-import 'package:ostrea/screens/about_us_screen.dart';
 import 'package:ostrea/widgets/audio_action_button.dart';
 import 'package:ostrea/widgets/audio_narration_text.dart';
 
@@ -128,28 +126,6 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
                 MaterialPageRoute(
                   builder: (context) => const DictionaryScreen(),
                 ),
-              );
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.help_outline),
-            tooltip: 'Tulong',
-            onPressed: () {
-              _stopSpeaking();
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const HelpScreen()),
-              );
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.info_outline),
-            tooltip: 'Tungkol sa Amin',
-            onPressed: () {
-              _stopSpeaking();
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AboutUsScreen()),
               );
             },
           ),
@@ -429,16 +405,9 @@ class _LearningModuleScreenState extends State<LearningModuleScreen> {
                 context,
               ).textTheme.bodyLarge?.copyWith(height: 1.6),
             ),
-<<<<<<< HEAD
-            if (widget.module.sourceUrl != null) ...[
-              const SizedBox(height: 20),
-              _buildSourceCitation(),
-            ],
-=======
             const SizedBox(height: 20),
             _buildSourceCitation(),
             SizedBox(height: 24),
->>>>>>> bedbc385b2274f31d66f0f09db9c04823b2af763
           ],
         ),
       ),
